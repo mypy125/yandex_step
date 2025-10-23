@@ -1,5 +1,3 @@
-package com.mygitgor;
-
 import com.mygitgor.client.PercentDiscountService;
 import com.mygitgor.model.CartItem;
 import com.mygitgor.sevice.CartItemService;

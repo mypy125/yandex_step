@@ -1,5 +1,3 @@
-package com.mygitgor;
-
 import com.mygitgor.model.Cart;
 import com.mygitgor.model.CartItem;
 import com.mygitgor.repository.CartRepository;

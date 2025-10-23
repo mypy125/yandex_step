@@ -1,24 +1,23 @@
 package com.mygitgor.repository.impl;
 
-import com.mygitgor.model.Cart;
 import com.mygitgor.repository.CartRepository;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class CartRepositoryImpl implements CartRepository {
-    private Map<String,Cart>map=new HashMap<>();
+    private Map<String, com.mygitgor.model.Cart>map=new HashMap<>();
 
     @Override
-    public Cart getUserCart(String userId) {
-        for (Cart cart : map.values()){
+    public com.mygitgor.model.Cart getUserCart(String userId) {
+        for (com.mygitgor.model.Cart cart : map.values()){
             if(cart.getUserId().equals(userId))return cart;
         }
         throw new IllegalArgumentException("cart by userid not exist"+userId);
     }
 
     @Override
-    public boolean createCart(Cart cart) {
+    public boolean createCart(com.mygitgor.model.Cart cart) {
         if(!isExist(cart.getId())){
             map.put(cart.getId(), cart);
         }

@@ -1,6 +1,5 @@
 package com.mygitgor.sevice;
 
-import com.mygitgor.model.Cart;
 import com.mygitgor.model.CartItem;
 import com.mygitgor.repository.CartRepository;
 
@@ -16,18 +15,18 @@ public class CartService {
     }
 
     public boolean createCart(String userId){
-        Cart createdCart = new Cart();
+        com.mygitgor.model.Cart createdCart = new com.mygitgor.model.Cart();
         createdCart.setUserId(userId);
         createdCart.setAmount(BigDecimal.ZERO);
         return cartRepository.createCart(createdCart);
     }
 
-    public Cart getUserCart(String userId){
+    public com.mygitgor.model.Cart getUserCart(String userId){
         return cartRepository.getUserCart(userId);
     }
 
-    public Cart updateCartAmount(String userId){
-        Cart userCart = getUserCart(userId);
+    public com.mygitgor.model.Cart updateCartAmount(String userId){
+        com.mygitgor.model.Cart userCart = getUserCart(userId);
         cartItemService.updatePercentDiscountUser(userId,userCart.getItems());
 
         BigDecimal total = BigDecimal.ZERO;

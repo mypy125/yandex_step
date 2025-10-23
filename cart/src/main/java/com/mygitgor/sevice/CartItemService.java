@@ -1,14 +1,13 @@
 package com.mygitgor.sevice;
 
 import com.mygitgor.model.CartItem;
-import com.mygitgor.client.PercentDiscountService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 
 public class CartItemService {
-    private PercentDiscountService percentDiscountService;
+    private com.mygitgor.client.PercentDiscountService percentDiscountService;
 
     public void updatePercentDiscountUser(String userId, List<CartItem> items){
         int userPercentDiscount = getUserDiscount(userId);
