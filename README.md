@@ -10,6 +10,7 @@
 - **Project Diagram:** [Ecommerce_Project_Structure](https://miro.com/app/board/uXjVJ12s_mg=/?share_link_id=379785323839)
 
 **App Services Dependencies**
+
 Authentication Service
 dependencies:
   - User Service (для проверки учетных данных)
