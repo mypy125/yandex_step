@@ -9,9 +9,10 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
-        <module>cart</module>
-        <module>user</module>
-        <module>product</module>
+        <module>auth-service</module>
+        <module>order-service</module>
+        <module>product-catalog-service</module>
+        <module>user-management-service</module>
     </modules>
 
     <properties>

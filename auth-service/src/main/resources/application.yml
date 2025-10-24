@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: auth-service
+
+jwt:
+  secretKey: ${JWT_SECRET_KEY}
+  header: ${JWT_HEADER}
