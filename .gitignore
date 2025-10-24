@@ -33,6 +33,11 @@ build/
 
 ### VS Code ###
 .vscode/
+.env
+.gitignore
 
 ### Mac OS ###
 .DS_Store
+
+###Services_env_ignor###
+**/*.env
