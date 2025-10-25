@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: user-management-service
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: ${RABBIT_USERNAME}
+    password: ${RABBIT_PASSWORD}

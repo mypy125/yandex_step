@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: notification-service
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: ${RABBIT_USERNAME}
+    password: ${RABBIT_PASSWORD}
+
+brevo:
+  api-key: ${BREVO_API_KEY}
+  from-email: ${BREVO_FROM_EMAIL:gor1990.mkhitatryan@gmail.com}
+  from-name: ${BREVO_FROM_NAME:Ecommerce Multivendor}

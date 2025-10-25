@@ -1,0 +1,52 @@
+package com.mygitgor.product_catalog_service.domain;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+@Entity
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Table(name = "products")
+@EqualsAndHashCode(callSuper = false)
+public class Product extends BaseEntity {
+    private String title;
+    private String description;
+    private int quantity;
+    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime updatedAt = LocalDateTime.now();
+
+    private int mrpPrice;
+    private int sellingPrice;
+    private int discountPercent;
+
+    private String color;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    private List<String> images = new ArrayList<>();
+
+    private int numRatings;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    private UUID sellerId;
+
+    //    @ElementCollection
+    private String size;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
+    private List<Review>reviews = new ArrayList<>();
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+}

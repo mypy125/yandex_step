@@ -7,6 +7,7 @@ import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -31,7 +32,7 @@ public class User extends BaseEntity{
     @OneToMany(fetch = FetchType.LAZY)
     private Set<Address> addresses = new HashSet<>();
 
-    private Set<String> usedCoupons = new HashSet<>();
+    private Set<UUID> usedCoupons = new HashSet<>();
 
     @PrePersist
     public void prePersist() {

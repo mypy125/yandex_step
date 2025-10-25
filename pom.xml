@@ -13,6 +13,7 @@
         <module>order-service</module>
         <module>product-catalog-service</module>
         <module>user-management-service</module>
+        <module>notification-service</module>
     </modules>
 
     <properties>
