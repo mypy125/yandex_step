@@ -1,4 +1,4 @@
-package com.mygitgor.user_management_service.utils;
+package com.mygitgor.auth_service.utils;
 
 import java.util.Random;
 
@@ -15,3 +15,4 @@ public class OtpUtil {
         return otp.toString();
     }
 }
+

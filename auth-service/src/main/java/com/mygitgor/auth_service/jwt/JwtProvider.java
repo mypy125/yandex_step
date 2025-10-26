@@ -11,10 +11,8 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,29 +25,70 @@ public class JwtProvider {
         this.key = Keys.hmacShaKeyFor(jwtProps.getSecretKey().getBytes(StandardCharsets.UTF_8));
     }
 
+    public String generateToken(String email) {
+        return generateToken(email, List.of("ROLE_CUSTOMER"));
+    }
 
-    public String generateToken(Authentication aut){
-        Collection<? extends GrantedAuthority> authorities = aut.getAuthorities();
-        String roles = populateAuthorities(authorities);
-        return Jwts.builder().setIssuedAt(new Date())
-                .setExpiration((new Date(new Date().getTime()+86400000)))
-                .claim("email", aut.getName())
+    public String generateToken(String email, List<String> authorities) {
+        String roles = String.join(",", authorities);
+
+        return Jwts.builder()
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + jwtProps.getExpirationTime()))
+                .claim("email", email)
                 .claim("authorities", roles)
                 .signWith(key)
                 .compact();
     }
 
-    private String populateAuthorities(Collection<? extends GrantedAuthority> authorities) {
-        Set<String> auths = new HashSet<>();
-        for(GrantedAuthority authority : authorities){
-            auths.add(authority.getAuthority());
-        }
-        return String.join(",",auths);
+    public String generateToken(Authentication auth) {
+        Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
+        String roles = populateAuthorities(authorities);
+
+        return Jwts.builder()
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + jwtProps.getExpirationTime()))
+                .claim("email", auth.getName())
+                .claim("authorities", roles)
+                .signWith(key)
+                .compact();
     }
 
-    public String getEmailFromJwtToken(String jwt){
-        jwt = jwt.substring(7);
-        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwt).getBody();
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public String getEmailFromJwtToken(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
         return String.valueOf(claims.get("email"));
+    }
+
+    public List<String> getAuthorities(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        String authoritiesStr = String.valueOf(claims.get("authorities"));
+        return Arrays.asList(authoritiesStr.split(","));
+    }
+
+    private String populateAuthorities(Collection<? extends GrantedAuthority> authorities) {
+        return authorities.stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
     }
 }

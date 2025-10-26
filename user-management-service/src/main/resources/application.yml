@@ -1,9 +1,29 @@
+server:
+  port: 8082
+
 spring:
   application:
     name: user-management-service
+
+  datasource:
+    url: ${LOCAL_DB_URL}
+    username: ${LOCAL_DB_USERNAME}
+    password: ${LOCAL_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
 
   rabbitmq:
     host: localhost
     port: 5672
     username: ${RABBIT_USERNAME}
     password: ${RABBIT_PASSWORD}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

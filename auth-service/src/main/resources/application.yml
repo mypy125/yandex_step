@@ -1,7 +1,31 @@
+server:
+  port: 8081
+
 spring:
   application:
     name: auth-service
 
+  datasource:
+    url: ${LOCAL_DB_URL}
+    username: ${LOCAL_DB_USERNAME}
+    password: ${LOCAL_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
 jwt:
   secretKey: ${JWT_SECRET_KEY}
   header: ${JWT_HEADER}
+
+user:
+  service:
+    base-url: ${USER_SERVICE_BASE_URL}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
