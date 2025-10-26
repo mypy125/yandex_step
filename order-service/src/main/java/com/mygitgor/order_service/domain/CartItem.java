@@ -1,13 +1,7 @@
 package com.mygitgor.order_service.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
 import java.util.UUID;
 
@@ -17,10 +11,14 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "cart_items")
+@ToString(callSuper = true, exclude = "cart")
+@EqualsAndHashCode(callSuper = true, exclude = "cart")
 public class CartItem extends BaseEntity{
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Cart cart;
 
     private UUID productId;
@@ -32,4 +30,24 @@ public class CartItem extends BaseEntity{
     private Integer sellingPrice;
 
     private UUID userId;
+
+    public static CartItem create(UUID productId, String size, int quantity,
+                                  Integer mrpPrice, Integer sellingPrice, UUID userId) {
+        CartItem item = new CartItem();
+        item.setProductId(productId);
+        item.setSize(size);
+        item.setQuantity(quantity);
+        item.setMrpPrice(mrpPrice);
+        item.setSellingPrice(sellingPrice);
+        item.setUserId(userId);
+        return item;
+    }
+
+    public Integer getTotalPrice() {
+        return sellingPrice * quantity;
+    }
+
+    public Integer getTotalMrpPrice() {
+        return mrpPrice * quantity;
+    }
 }

@@ -1,10 +1,13 @@
 package com.mygitgor.order_service.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import lombok.*;
 
-@Data
+@Embeddable
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaymentDetails {
@@ -13,5 +16,6 @@ public class PaymentDetails {
     private String paymentLinkReferenceId;
     private String paymentLinkStatus;
     private String paymentIdZWSP;
+    @Enumerated(EnumType.STRING)
     private PaymentStatus status;
 }

@@ -6,10 +6,11 @@ import lombok.*;
 @Entity
 @Getter
 @Setter
+@Table(name = "addresses")
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "addresses")
-@EqualsAndHashCode(callSuper = false)
+@ToString(callSuper = true, exclude = "user")
+@EqualsAndHashCode(callSuper = true, exclude = "user")
 public class Address extends BaseEntity {
     private String name;
     private String locality;
@@ -21,5 +22,7 @@ public class Address extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private User user;
 }

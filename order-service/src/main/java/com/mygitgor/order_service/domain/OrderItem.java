@@ -1,13 +1,7 @@
 package com.mygitgor.order_service.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
 import java.util.UUID;
 
@@ -17,10 +11,14 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "order_items")
+@ToString(callSuper = true, exclude = "order")
+@EqualsAndHashCode(callSuper = true, exclude = "order")
 public class OrderItem extends BaseEntity{
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Order order;
 
     private UUID productId;
@@ -29,5 +27,14 @@ public class OrderItem extends BaseEntity{
     private int quantity;
     private Integer mrpPrice;
     private Integer sellingPrice;
-    private Long userId;
+
+
+
+    public Integer getTotalPrice() {
+        return sellingPrice != null ? sellingPrice * quantity : 0;
+    }
+
+    public Integer getTotalMrpPrice() {
+        return mrpPrice != null ? mrpPrice * quantity : 0;
+    }
 }
