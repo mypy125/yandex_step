@@ -14,7 +14,8 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "products")
-@EqualsAndHashCode(callSuper = false)
+@ToString(callSuper = true, exclude = {"category","reviews"})
+@EqualsAndHashCode(callSuper = true, exclude = {"category","reviews"})
 public class Product extends BaseEntity {
     private String title;
     private String description;
@@ -35,6 +36,8 @@ public class Product extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Category category;
 
     private UUID sellerId;
@@ -43,6 +46,8 @@ public class Product extends BaseEntity {
     private String size;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<Review>reviews = new ArrayList<>();
 
     @PreUpdate

@@ -1,10 +1,7 @@
 package com.mygitgor.product_catalog_service.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -16,7 +13,8 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = false)
+@ToString(callSuper = true, exclude = "product")
+@EqualsAndHashCode(callSuper = true, exclude = "product")
 public class Review extends BaseEntity {
 
     @Column(nullable = false)
@@ -29,7 +27,9 @@ public class Review extends BaseEntity {
     private List<String> productImages;
 
     @JsonIgnore
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Product product;
 
     private UUID userId;

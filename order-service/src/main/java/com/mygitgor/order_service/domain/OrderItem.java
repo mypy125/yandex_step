@@ -27,8 +27,7 @@ public class OrderItem extends BaseEntity{
     private int quantity;
     private Integer mrpPrice;
     private Integer sellingPrice;
-
-
+    private UUID userId;
 
     public Integer getTotalPrice() {
         return sellingPrice != null ? sellingPrice * quantity : 0;

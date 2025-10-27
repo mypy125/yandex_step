@@ -8,7 +8,8 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = false)
+@ToString(callSuper = true, exclude = "section")
+@EqualsAndHashCode(callSuper = true, exclude = "section")
 public class HomeCategory extends BaseEntity {
     private String name;
     private String image;

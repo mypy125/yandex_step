@@ -1,5 +1,6 @@
 package com.mygitgor.auth_service.client;
 
+import com.mygitgor.auth_service.dto.SignupRequest;
 import com.mygitgor.auth_service.dto.UserDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatusCode;
@@ -22,6 +23,16 @@ public class UserClient {
                 .bodyValue(Map.of("email", email, "otp", otp))
                 .retrieve()
                 .bodyToMono(Void.class)
+                .block();
+    }
+
+    public UserDto createUserInUserService(SignupRequest req) {
+        return webClientBuilder.build()
+                .post()
+                .uri(BASE_URL)
+                .bodyValue(req)
+                .retrieve()
+                .bodyToMono(UserDto.class)
                 .block();
     }
 
@@ -50,4 +61,6 @@ public class UserClient {
                 .bodyToMono(UserDto.class)
                 .block();
     }
+
+
 }

@@ -1,5 +1,6 @@
 package com.mygitgor.user_management_service.controller;
 
+import com.mygitgor.user_management_service.dto.SignupRequest;
 import com.mygitgor.user_management_service.dto.UserDto;
 import com.mygitgor.user_management_service.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -19,4 +20,9 @@ public class UserController {
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
+    @PostMapping
+    public ResponseEntity<UserDto> createUser(@RequestBody SignupRequest request) {
+        UserDto user = userService.createUser(request);
+        return new ResponseEntity<>(user, HttpStatus.CREATED);
+    }
 }

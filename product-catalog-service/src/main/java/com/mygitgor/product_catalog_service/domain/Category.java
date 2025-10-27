@@ -1,9 +1,6 @@
 package com.mygitgor.product_catalog_service.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -12,7 +9,8 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = false)
+@ToString(callSuper = true, exclude = "parentCategory")
+@EqualsAndHashCode(callSuper = true, exclude = "parentCategory")
 public class Category extends BaseEntity {
     private String name;
 
@@ -21,6 +19,8 @@ public class Category extends BaseEntity {
     private String categoryId;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Category parentCategory;
 
     @NotNull
