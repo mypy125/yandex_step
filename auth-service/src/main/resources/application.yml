@@ -11,6 +11,12 @@ spring:
     password: ${LOCAL_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
+  data:
+    redis:
+      host: ${RDS_HOST}
+      port: ${RDS_PORT}
+      timeout: 6000
+
   jpa:
     hibernate:
       ddl-auto: update

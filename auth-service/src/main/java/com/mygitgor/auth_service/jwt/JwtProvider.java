@@ -86,9 +86,30 @@ public class JwtProvider {
         return Arrays.asList(authoritiesStr.split(","));
     }
 
+    public Date extractExpiration(String token) {
+        return getClaims(token).getExpiration();
+    }
+
+    public String extractEmail(String token) {
+        return String.valueOf(getClaims(token).get("email"));
+    }
+
+    public List<String> extractAuthorities(String token) {
+        String authorities = String.valueOf(getClaims(token).get("authorities"));
+        return Arrays.asList(authorities.split(","));
+    }
+
     private String populateAuthorities(Collection<? extends GrantedAuthority> authorities) {
         return authorities.stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
+    }
+
+    private Claims getClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 }

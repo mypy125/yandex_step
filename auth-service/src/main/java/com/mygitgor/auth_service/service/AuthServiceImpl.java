@@ -1,9 +1,11 @@
 package com.mygitgor.auth_service.service;
 
 import com.mygitgor.auth_service.client.UserClient;
+import com.mygitgor.auth_service.domain.BlacklistedToken;
 import com.mygitgor.auth_service.dto.SignupRequest;
 import com.mygitgor.auth_service.dto.UserDto;
 import com.mygitgor.auth_service.jwt.JwtProvider;
+import com.mygitgor.auth_service.repository.BlacklistedTokenRepository;
 import com.mygitgor.auth_service.utils.OtpUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +16,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 
 @Slf4j
@@ -24,6 +30,8 @@ public class AuthServiceImpl implements AuthService {
     private final UserClient userClient;
     private final JwtProvider jwtProvider;
     private final OtpSenderService otpSenderService;
+    private final TokenCacheService tokenCacheService;
+    private final BlacklistedTokenRepository tokenRepository;
 
     @Override
     public void sendLoginOtp(String email) {
@@ -42,48 +50,41 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String verifyOtpAndLogin(String email, String otp) {
-        final String method = "verifyOtpAndLogin";
-        validateEmailAndOtp(email, otp, method);
-
+        validateEmailAndOtp(email, otp, "verifyOtpAndLogin");
         try {
             boolean valid = userClient.verifyOtp(email, otp);
-            if (!valid) {
-                throw new RuntimeException("Invalid OTP");
-            }
-            log.debug("{}: OTP verified successfully for email: {}", method, email);
+            if (!valid) throw new RuntimeException("Invalid OTP");
 
-            log.debug("{}: Retrieving user by email: {}", method, email);
             UserDto user = userClient.getUserByEmail(email);
-            if (user == null) {
-                log.error("{}: User not found for email: {}", method, email);
-                throw new RuntimeException("User not found");
-            }
+            if (user == null) throw new RuntimeException("User not found");
 
-            log.debug("{}: User retrieved successfully. ID: {}, Roles: {}",
-                    method, user.id(), user.getRoles());
-            return jwtProvider.generateToken(user.email(), user.getRoles());
+            String token = jwtProvider.generateToken(user.email(), user.getRoles());
 
-            //TODO: catching token
+            Date expirationDate = jwtProvider.extractExpiration(token);
+            LocalDateTime expiration = expirationDate.toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime();
+            tokenCacheService.blacklistToken(token, expiration);
+
+            log.info("User {} successfully logged in", email);
+            return token;
 
         } catch (RuntimeException e) {
             log.error("{}: Login failed for email: {}. Error: {}",
-                    method, email, e.getMessage(), e);
+                    "verifyOtpAndLogin", email, e.getMessage(), e);
             throw e;
         } catch (Exception e) {
+            log.error("Login failed for {}", email, e);
             throw new RuntimeException("Authentication failed " + e.getMessage(), e);
         }
     }
 
     @Override
     public String createUser(SignupRequest request) {
-        final String method = "createUser";
-        validateSignupRequest(request, method);
+        validateSignupRequest(request, "createUser");
 
         boolean valid = userClient.verifyOtp(request.email(),request.otp());
-
-        if (!valid) {
-            throw new RuntimeException("Invalid OTP");
-        }
+        if (!valid) throw new RuntimeException("Invalid OTP");
 
         UserDto user = userClient.createUserInUserService(request);
 
@@ -94,8 +95,32 @@ public class AuthServiceImpl implements AuthService {
         Authentication authentication = new UsernamePasswordAuthenticationToken(user.email(), null, authorities);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        return jwtProvider.generateToken(authentication);
-        //TODO: saving jwt token in db auth-service__and__adding_cache-rds
+        String token = jwtProvider.generateToken(authentication);
+
+        Date expirationDate = jwtProvider.extractExpiration(token);
+        LocalDateTime expiration = expirationDate.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
+
+        tokenCacheService.blacklistToken(token, expiration);
+        tokenRepository.save(new BlacklistedToken(token, user.id(), expiration));
+
+        return token;
+    }
+
+    @Override
+    public void logout(String token, UUID userId) {
+        Date expirationDate = jwtProvider.extractExpiration(token);
+        LocalDateTime expiration = expirationDate.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
+
+        tokenCacheService.blacklistToken(token, expiration);
+    }
+
+    @Override
+    public boolean isTokenBlacklisted(String token) {
+        return tokenRepository.existsByToken(token);
     }
 
 
