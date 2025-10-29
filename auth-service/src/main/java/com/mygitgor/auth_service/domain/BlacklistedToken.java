@@ -5,19 +5,25 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "blacklisted_tokens")
+@Table(name = "blacklisted_tokens",indexes = {
+        @Index(name = "idx_token", columnList = "token"),
+        @Index(name = "idx_user_id", columnList = "userId"),
+        @Index(name = "idx_expires_at", columnList = "expiresAt")
+})
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class BlacklistedToken {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     private UUID id;
 
     @Column(nullable = false, unique = true)

@@ -2,10 +2,14 @@ package com.mygitgor.auth_service.config;
 
 import com.mygitgor.auth_service.jwt.JwtProps;
 import com.mygitgor.auth_service.jwt.JwtProvider;
+import com.mygitgor.auth_service.service.impl.TokenCacheService;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -25,12 +29,12 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
 @AllArgsConstructor
 public class SecurityConfig {
+    private final TokenCacheService tokenCacheService;
     private final JwtProvider jwtProvider;
     private final JwtProps jwtProps;
 
@@ -47,7 +51,6 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.OPTIONS).permitAll()
                         .anyExchange().authenticated()
                 )
-                .addFilterAt(corsWebFilter(), SecurityWebFiltersOrder.CORS)
                 .addFilterAt(jwtWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .build();
     }
@@ -67,21 +70,27 @@ public class SecurityConfig {
                 }
 
                 String token = authHeader.substring(7);
+                if (tokenCacheService.isTokenBlacklisted(token)) {
+                    return Mono.error(new BadCredentialsException("Token is blacklisted"));
+                }
+
                 if (!jwtProvider.validateToken(token)) {
-                    return Mono.empty();
+                    return Mono.error(new BadCredentialsException("Invalid token"));
                 }
 
                 String email = jwtProvider.getEmailFromJwtToken(token);
                 List<SimpleGrantedAuthority> authorities = jwtProvider.getAuthorities(token)
                         .stream()
                         .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toList());
+                        .toList();
 
                 Authentication auth = new UsernamePasswordAuthenticationToken(
                         email, null, authorities);
                 return Mono.just(auth);
+            } catch (ExpiredJwtException e) {
+                return Mono.error(new CredentialsExpiredException("Token expired"));
             } catch (Exception e) {
-                return Mono.empty();
+                return Mono.error(new BadCredentialsException("Authentication failed"));
             }
         };
     }

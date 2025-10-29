@@ -8,11 +8,13 @@ import com.mygitgor.user_management_service.repository.UserRepository;
 import com.mygitgor.user_management_service.service.NotificationService;
 import com.mygitgor.user_management_service.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {

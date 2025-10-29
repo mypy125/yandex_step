@@ -11,6 +11,29 @@ spring:
     password: ${LOCAL_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    port: ${RABBIT_PORT}
+    username: ${RABBIT_USERNAME}
+    password: ${RABBIT_PASSWORD}
+    virtual-host: /
+    connection-timeout: 5s
+    template:
+      retry:
+        enabled: true
+        initial-interval: 1000ms
+        multiplier: 2
+        max-attempts: 3
+        max-interval: 10000ms
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 1000ms
+          multiplier: 2
+          max-attempts: 3
+          max-interval: 10000ms
+
   data:
     redis:
       host: ${RDS_HOST}
@@ -29,9 +52,14 @@ jwt:
 user:
   service:
     base-url: ${USER_SERVICE_BASE_URL}
+    timeout: 10s
 
 management:
   endpoints:
     web:
       exposure:
         include: "*"
+
+logging:
+  level:
+    org.springframework.amqp: DEBUG

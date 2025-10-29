@@ -1,5 +1,6 @@
 package com.mygitgor.auth_service.jwt;
 
+import com.mygitgor.auth_service.dto.USER_ROLE;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -25,8 +26,8 @@ public class JwtProvider {
         this.key = Keys.hmacShaKeyFor(jwtProps.getSecretKey().getBytes(StandardCharsets.UTF_8));
     }
 
-    public String generateToken(String email) {
-        return generateToken(email, List.of("ROLE_CUSTOMER"));
+    public String generateToken(String email, USER_ROLE role) {
+        return generateToken(email, List.of(role.name()));
     }
 
     public String generateToken(String email, List<String> authorities) {
@@ -86,17 +87,20 @@ public class JwtProvider {
         return Arrays.asList(authoritiesStr.split(","));
     }
 
+    public USER_ROLE getRoleFromJwtToken(String token) {
+        List<String> authorities = getAuthorities(token);
+        if (!authorities.isEmpty()) {
+            try {
+                return USER_ROLE.valueOf(authorities.get(0));
+            } catch (IllegalArgumentException e) {
+                return USER_ROLE.ROLE_CUSTOMER;
+            }
+        }
+        return USER_ROLE.ROLE_CUSTOMER;
+    }
+
     public Date extractExpiration(String token) {
         return getClaims(token).getExpiration();
-    }
-
-    public String extractEmail(String token) {
-        return String.valueOf(getClaims(token).get("email"));
-    }
-
-    public List<String> extractAuthorities(String token) {
-        String authorities = String.valueOf(getClaims(token).get("authorities"));
-        return Arrays.asList(authorities.split(","));
     }
 
     private String populateAuthorities(Collection<? extends GrantedAuthority> authorities) {
