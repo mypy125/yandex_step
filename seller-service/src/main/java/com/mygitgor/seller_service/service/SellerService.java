@@ -11,4 +11,5 @@ public interface SellerService{
     void verifyEmail(String email);
     Seller getSellerByEmail(String email);
     Seller updateSeller(String email, Seller seller);
+
 }

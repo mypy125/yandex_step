@@ -41,7 +41,7 @@ public class EmailService {
 
     public void sendVerificationOtpEmail(String userEmail, String otp, String subject, String text) {
         try {
-            log.info("Attempting to send email via Brevo to: {}", userEmail);
+            log.info("sendVerificationOtpEmail to: {}", userEmail);
             log.info("OTP: {}, Subject: {}", otp, subject);
 
             ApiClient defaultClient = Configuration.getDefaultApiClient();
@@ -62,10 +62,10 @@ public class EmailService {
             log.info("Sending email via Brevo...");
             CreateSmtpEmail response = api.sendTransacEmail(sendSmtpEmail);
 
-            log.info("Email sent successfully to: {}. Message ID: {}", userEmail, response.getMessageId());
+            log.info("sendVerificationOtpEmail sent successfully to: {}. Message ID: {}", userEmail, response.getMessageId());
 
         } catch (Exception e) {
-            log.error("Brevo error for {}: {}", userEmail, e.getMessage());
+            log.error("sendVerificationOtpEmail error for {}: {}", userEmail, e.getMessage());
             log.info("OTP for {}: {} (email failed)", userEmail, otp);
         }
     }
@@ -77,4 +77,40 @@ public class EmailService {
         }
         return templateService.getOtpTemplate(otp);
     }
+
+
+    public void sendGeneralEmail(String userEmail, String subject, String text) {
+        try {
+            log.info("sendGeneralEmail to: {}, subject: {}", userEmail, subject);
+
+            ApiClient defaultClient = Configuration.getDefaultApiClient();
+            defaultClient.setApiKey(brevoApiKey);
+
+            TransactionalEmailsApi api = new TransactionalEmailsApi();
+
+            String htmlContent = templateService.buildGeneralEmailContent(subject, text);
+
+            SendSmtpEmail sendSmtpEmail = new SendSmtpEmail();
+            sendSmtpEmail.setTo(List.of(new SendSmtpEmailTo().email(userEmail)));
+            sendSmtpEmail.setSubject(subject);
+            sendSmtpEmail.setHtmlContent(htmlContent);
+            sendSmtpEmail.setSender(new SendSmtpEmailSender()
+                    .email(fromEmail)
+                    .name(fromName));
+
+            CreateSmtpEmail response = api.sendTransacEmail(sendSmtpEmail);
+
+            log.info("sendGeneralEmail sent successfully to: {}. Message ID: {}", userEmail, response.getMessageId());
+
+        } catch (Exception e) {
+            log.error("Brevo error for sendGeneralEmail to {}: {}", userEmail, e.getMessage());
+            throw new RuntimeException("sendGeneralEmail sending failed: " + e.getMessage());
+        }
+    }
+
+
+
+
+
+
 }

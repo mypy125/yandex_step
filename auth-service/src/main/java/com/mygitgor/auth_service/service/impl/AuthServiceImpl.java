@@ -1,5 +1,6 @@
 package com.mygitgor.auth_service.service.impl;
 
+import com.mygitgor.auth_service.client.CartClient;
 import com.mygitgor.auth_service.client.SellerClient;
 import com.mygitgor.auth_service.client.UserClient;
 import com.mygitgor.auth_service.domain.BlacklistedToken;
@@ -32,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 public class AuthServiceImpl implements AuthService {
     private final JwtProvider jwtProvider;
     private final UserClient userClient;
+    private final CartClient cartClient;
     private final SellerClient sellerClient;
     private final VerificationService verificationService;
     private final TokenCacheService tokenCacheService;
@@ -98,7 +100,7 @@ public class AuthServiceImpl implements AuthService {
         userRequest.setMobile("37444******");
 
         return userClient.createUser(userRequest)
-                .then(userClient.createCart(request.getEmail()))
+                .then(cartClient.createCart(request.getEmail()))
                 .then(generateAuthResponse(request.getEmail(), USER_ROLE.ROLE_CUSTOMER));
     }
 

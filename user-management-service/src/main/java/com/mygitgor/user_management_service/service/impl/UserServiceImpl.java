@@ -41,9 +41,8 @@ public class UserServiceImpl implements UserService {
         user.setFullName(req.fullName());
         user.setPassword(passwordEncoder.encode(req.otp()));
         user.setRole(USER_ROLE.ROLE_CUSTOMER);
-
         userRepository.save(user);
-        //TODO: cart-client createUserCart(userId)
+
         notificationService.sendOtpToNotificationService(req.email(),req.otp());
         return new UserDto(user.getId(), user.getEmail(), user.getFullName(), List.of(user.getRole()));
     }

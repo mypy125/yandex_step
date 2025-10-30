@@ -1,5 +1,6 @@
 package com.mygitgor.auth_service.controller;
 
+import com.mygitgor.auth_service.client.SellerClient;
 import com.mygitgor.auth_service.dto.*;
 import com.mygitgor.auth_service.dto.response.ApiResponse;
 import com.mygitgor.auth_service.dto.response.AuthResponse;
@@ -16,10 +17,12 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
+    private final SellerClient sellerClient;
     private final VerificationService verificationService;
 
     @PostMapping("/otp")
-    public Mono<ResponseEntity<ApiResponse>> sendOtp(@RequestBody OtpRequest request) {
+    public Mono<ResponseEntity<ApiResponse>> sendOtp(@RequestBody OtpRequest request
+    ) {
         return verificationService.sendOtp(request.getEmail(),request.getRole(),request.getPurpose())
                 .map(response -> ResponseEntity.ok(
                         new ApiResponse("OTP sent successfully", true, response)
@@ -32,7 +35,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public Mono<ResponseEntity<AuthResponse>> login(@RequestBody LoginRequest request, USER_ROLE role) {
+    public Mono<ResponseEntity<AuthResponse>> login(@RequestBody LoginRequest request, USER_ROLE role
+    ) {
         return authService.login(request, role)
                 .map(ResponseEntity::ok)
                 .onErrorResume(e -> Mono.just(
@@ -41,9 +45,9 @@ public class AuthController {
     }
 
     @PatchMapping("/verify/{otp}")
-    public Mono<ResponseEntity<ApiResponse>> verifyOtp(
-            @PathVariable String otp,
-            @RequestBody VerifyOtpRequest request) {
+    public Mono<ResponseEntity<ApiResponse>> verifyOtp(@PathVariable String otp,
+                                                        @RequestBody VerifyOtpRequest request
+    ) {
         return verificationService.verifyOtp(otp, request)
                 .map(verified -> ResponseEntity.ok(
                         new ApiResponse("Verification successful", true, verified)
@@ -56,7 +60,8 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public Mono<ResponseEntity<ApiResponse>> logout(@RequestHeader("Authorization") String authHeader) {
+    public Mono<ResponseEntity<ApiResponse>> logout(@RequestHeader("Authorization") String authHeader
+    ) {
         String token = extractTokenFromHeader(authHeader);
 
         return authService.logout(token)
@@ -67,7 +72,8 @@ public class AuthController {
     }
 
     @PostMapping("/logout-all")
-    public Mono<ResponseEntity<ApiResponse>> logoutAllDevices(@RequestHeader("Authorization") String authHeader) {
+    public Mono<ResponseEntity<ApiResponse>> logoutAllDevices(@RequestHeader("Authorization") String authHeader
+    ) {
         return authService.getUserInfoFromToken(extractTokenFromHeader(authHeader))
                 .flatMap(userInfo -> authService.logoutAllDevices(userInfo.getEmail()))
                 .thenReturn(ResponseEntity.ok(new ApiResponse("Logged out from all devices", true, null)))
@@ -77,7 +83,8 @@ public class AuthController {
     }
 
     @GetMapping("/validate")
-    public Mono<ResponseEntity<ApiResponse>> validateToken(@RequestHeader("Authorization") String authHeader) {
+    public Mono<ResponseEntity<ApiResponse>> validateToken(@RequestHeader("Authorization") String authHeader
+    ) {
         String token = extractTokenFromHeader(authHeader);
 
         return authService.validateToken(token)

@@ -3,12 +3,26 @@ spring:
     name: notification-service
 
   rabbitmq:
-    host: localhost
-    port: 5672
+    host: ${RABBIT_HOST}
+    port: ${RABBIT_PORT}
     username: ${RABBIT_USERNAME}
     password: ${RABBIT_PASSWORD}
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 3000ms
+          multiplier: 2
+          max-attempts: 3
+          max-interval: 10000ms
+
 
 brevo:
   api-key: ${BREVO_API_KEY}
   from-email: ${BREVO_FROM_EMAIL:gor1990.mkhitatryan@gmail.com}
   from-name: ${BREVO_FROM_NAME:Ecommerce Multivendor}
+
+logging:
+  level:
+    com.mygitgor.notification_service: INFO
+    org.springframework.amqp: WARN

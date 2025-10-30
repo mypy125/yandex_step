@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono;
 public class UserClient {
     private final WebClient.Builder webClientBuilder;
 
-    @Value("${user.service.url:http://user-management-service:8082/api/users}")
+    @Value("${user.service.url:http://localhost:8082/api/users}")
     private String baseUrl;
 
     public Mono<Boolean> existsByEmail(String email) {
@@ -52,15 +52,5 @@ public class UserClient {
                 });
     }
 
-    public Mono<Void> createCart(String userId) {
-        return webClientBuilder.build()
-                .post()
-                .uri(baseUrl + "/{userId}/cart", userId)
-                .retrieve()
-                .bodyToMono(Void.class)
-                .onErrorResume(e -> {
-                    log.error("Error creating cart for user: {}", userId, e);
-                    return Mono.error(new RuntimeException("Failed to create cart"));
-                });
-    }
+
 }

@@ -153,4 +153,36 @@ public class EmailTemplateService {
             </div>
             """.formatted(otp, verificationLink, verificationLink);
     }
+
+    public String buildGeneralEmailContent(String subject, String text) {
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>%s</title>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { background: #f8f9fa; padding: 20px; text-align: center; }
+                    .content { padding: 20px; background: white; }
+                    .footer { padding: 20px; text-align: center; color: #666; font-size: 12px; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h2>Ecommerce Multivendor</h2>
+                    </div>
+                    <div class="content">
+                        %s
+                    </div>
+                    <div class="footer">
+                        <p>&copy; 2024 Ecommerce Multivendor. All rights reserved.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(subject, text.replace("\n", "<br>"));
+    }
 }

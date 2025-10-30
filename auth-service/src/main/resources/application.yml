@@ -53,6 +53,10 @@ user:
   service:
     base-url: ${USER_SERVICE_BASE_URL}
     timeout: 10s
+seller:
+  service:
+    base-url: ${SELLER_SERVICE_BASE_URL}
+    timeout: 10s
 
 management:
   endpoints:

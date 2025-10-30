@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono;
 public class SellerClient {
     private final WebClient.Builder webClientBuilder;
 
-    @Value("${user.service.url:http://user-management-service:8083/api/sellers}")
+    @Value("${seller.service.url:http://localhost:8083/api/sellers}")
     private String baseUrl;
 
     public Mono<Boolean> existsByEmail(String email) {

@@ -21,6 +21,7 @@ import java.util.List;
 public class VerificationServiceImpl implements VerificationService {
     private final VerificationCodeRepository verificationCodeRepository;
     private final NotificationService notificationService;
+    private final SellerClient sellerClient;
 
     @Override
     public Mono<VerificationCode> sendOtp(String email, USER_ROLE role, String purpose) {
@@ -79,7 +80,21 @@ public class VerificationServiceImpl implements VerificationService {
                     if (!valid) {
                         return Mono.error(new RuntimeException("Invalid or expired OTP"));
                     }
-                    return Mono.just(true);
+                    return sellerClient.verifyEmail(request.getEmail())
+                            .doOnSuccess(success -> {
+                                if (success) {
+                                    log.info("Seller email verified successfully: {}", request.getEmail());
+                                } else {
+                                    log.error("Failed to verify seller email: {}", request.getEmail());
+                                }
+                            })
+                            .doOnError(error -> {
+                                log.error("Error verifying seller email: {}", request.getEmail(), error);
+                            });
+                })
+                .onErrorResume(error -> {
+                    log.error("OTP verification failed for email: {}", request.getEmail(), error);
+                    return Mono.error(new RuntimeException("Verification failed: " + error.getMessage()));
                 });
     }
 
@@ -103,33 +118,25 @@ public class VerificationServiceImpl implements VerificationService {
     }
 
     private String getEmailSubject(String purpose, USER_ROLE role) {
-        switch (purpose.toUpperCase()) {
-            case "REGISTRATION":
-                return "Verify Your Account - Ecommerce Multivendor";
-            case "EMAIL_VERIFICATION":
-                return "Verify Your Seller Account - Ecommerce Multivendor";
-            case "LOGIN":
-                return "Your Login OTP - Ecommerce Multivendor";
-            case "PASSWORD_RESET":
-                return "Password Reset OTP - Ecommerce Multivendor";
-            default:
-                return "Your OTP - Ecommerce Multivendor";
-        }
+        return switch (purpose.toUpperCase()) {
+            case "REGISTRATION" -> "Verify Your Account - Ecommerce Multivendor";
+            case "EMAIL_VERIFICATION" -> "Verify Your Seller Account - Ecommerce Multivendor";
+            case "LOGIN" -> "Your Login OTP - Ecommerce Multivendor";
+            case "PASSWORD_RESET" -> "Password Reset OTP - Ecommerce Multivendor";
+            default -> "Your OTP - Ecommerce Multivendor";
+        };
     }
 
     private String getEmailText(String otp, String purpose, USER_ROLE role) {
-        switch (purpose.toUpperCase()) {
-            case "REGISTRATION":
-                return "Welcome! Your registration OTP is: " + otp;
-            case "EMAIL_VERIFICATION":
+        return switch (purpose.toUpperCase()) {
+            case "REGISTRATION" -> "Welcome! Your registration OTP is: " + otp;
+            case "EMAIL_VERIFICATION" -> {
                 String verificationLink = "https://ecommerce-multivendor-frontend.onrender.com/verify-seller?otp=" + otp;
-                return "Welcome! Verify your seller account: " + verificationLink;
-            case "LOGIN":
-                return "Your login OTP is: " + otp;
-            case "PASSWORD_RESET":
-                return "Your password reset OTP is: " + otp;
-            default:
-                return "Your OTP is: " + otp;
-        }
+                yield "Welcome! Verify your seller account: " + verificationLink;
+            }
+            case "LOGIN" -> "Your login OTP is: " + otp;
+            case "PASSWORD_RESET" -> "Your password reset OTP is: " + otp;
+            default -> "Your OTP is: " + otp;
+        };
     }
 }
