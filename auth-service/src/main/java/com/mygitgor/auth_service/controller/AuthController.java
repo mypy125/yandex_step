@@ -1,6 +1,5 @@
 package com.mygitgor.auth_service.controller;
 
-import com.mygitgor.auth_service.client.SellerClient;
 import com.mygitgor.auth_service.dto.*;
 import com.mygitgor.auth_service.dto.response.ApiResponse;
 import com.mygitgor.auth_service.dto.response.AuthResponse;
@@ -17,7 +16,6 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
-    private final SellerClient sellerClient;
     private final VerificationService verificationService;
 
     @PostMapping("/otp")
