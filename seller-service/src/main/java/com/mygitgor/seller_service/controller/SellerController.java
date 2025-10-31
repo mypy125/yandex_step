@@ -3,6 +3,7 @@ package com.mygitgor.seller_service.controller;
 import com.mygitgor.seller_service.domain.Seller;
 import com.mygitgor.seller_service.dto.SellerAuthInfo;
 import com.mygitgor.seller_service.dto.SellerCreateRequest;
+import com.mygitgor.seller_service.dto.SellerDto;
 import com.mygitgor.seller_service.service.SellerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -51,10 +52,10 @@ public class SellerController {
     }
 
     @PutMapping("/{email}")
-    public ResponseEntity<Seller> updateSeller(@PathVariable String email,
-                                               @RequestBody Seller seller)
+    public ResponseEntity<SellerDto> updateSeller(@PathVariable String email,
+                                               @RequestBody SellerDto seller)
     {
-        Seller updatedSeller = sellerService.updateSeller(email, seller);
+        SellerDto updatedSeller = sellerService.updateSeller(email, seller);
         return ResponseEntity.ok(updatedSeller);
     }
 }

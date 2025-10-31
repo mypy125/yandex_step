@@ -1,8 +1,10 @@
 package com.mygitgor.user_management_service.dto;
 
-public record SignupRequest (
-        String email,
-        String fullName,
-        String otp
-){
+import lombok.Data;
+
+@Data
+public class SignupRequest {
+    private String email;
+    private String fullName;
+    private String otp;
 }

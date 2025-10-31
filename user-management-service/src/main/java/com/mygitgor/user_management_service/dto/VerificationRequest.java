@@ -1,4 +1,9 @@
 package com.mygitgor.user_management_service.dto;
 
-public record VerificationRequest(String email, String otp) {
+import lombok.Data;
+
+@Data
+public class VerificationRequest{
+    private String email;
+    private String ot;
 }

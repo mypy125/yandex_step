@@ -2,7 +2,6 @@ package com.mygitgor.auth_service.dto.massaging;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

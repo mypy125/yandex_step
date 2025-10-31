@@ -17,6 +17,9 @@ import lombok.*;
 @AllArgsConstructor
 @Table(name = "sellers")
 public class Seller extends BaseEntity{
+    @Column(name = "seller_name")
+    private String sellerName;
+
     @Column(unique = true, nullable = false)
     private String email;
     private String mobile;
@@ -27,9 +30,6 @@ public class Seller extends BaseEntity{
 
     @Enumerated(EnumType.STRING)
     private USER_ROLE role;
-
-    @Column(name = "seller_name")
-    private String sellerName;
 
     @Embedded
     private BusinessDetails businessDetails = new BusinessDetails();
