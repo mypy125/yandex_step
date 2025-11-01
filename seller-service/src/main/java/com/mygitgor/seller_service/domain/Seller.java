@@ -11,11 +11,11 @@ import lombok.*;
 @Entity
 @Getter
 @Setter
-@ToString
-@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "sellers")
+@ToString(callSuper = true, exclude = {"pickupAddress", "password"})
+@EqualsAndHashCode(callSuper = true, exclude = "pickupAddress")
 public class Seller extends BaseEntity{
     @Column(name = "seller_name")
     private String sellerName;
@@ -39,7 +39,6 @@ public class Seller extends BaseEntity{
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "pickup_address_id")
-    @ToString.Exclude
     private Address pickupAddress = new Address();
 
     private String NDS;

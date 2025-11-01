@@ -57,6 +57,10 @@ seller:
   service:
     base-url: ${SELLER_SERVICE_BASE_URL}
     timeout: 10s
+cart:
+  service:
+    base-url: ${CART_SERVICE_BASE_URL}
+    timeout: 10s
 
 management:
   endpoints:
