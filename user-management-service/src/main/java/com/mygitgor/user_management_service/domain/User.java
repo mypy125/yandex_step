@@ -14,14 +14,13 @@ import java.util.UUID;
 @Setter
 @Table(name = "users")
 @NoArgsConstructor
+@AllArgsConstructor
 @ToString(callSuper = true, exclude = {"addresses", "usedCoupons", "password"})
 @EqualsAndHashCode(callSuper = true, exclude = {"addresses", "usedCoupons"})
 public class User extends BaseEntity{
-    @ToString.Include
     private String fullName;
 
     @Column(unique = true, nullable = false)
-    @ToString.Include
     private String email;
 
     private String mobile;
@@ -33,15 +32,11 @@ public class User extends BaseEntity{
     private USER_ROLE role;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
     private Set<Address> addresses = new HashSet<>();
 
     @ElementCollection
     @CollectionTable(name = "user_used_coupons", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "coupon_id")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
     private Set<UUID> usedCoupons = new HashSet<>();
 
     @PrePersist

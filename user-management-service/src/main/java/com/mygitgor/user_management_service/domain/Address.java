@@ -9,8 +9,8 @@ import lombok.*;
 @Table(name = "addresses")
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString(callSuper = true, exclude = "user")
-@EqualsAndHashCode(callSuper = true, exclude = "user")
+@ToString(callSuper = true, exclude = {"user"})
+@EqualsAndHashCode(callSuper = true, exclude = {"user"})
 public class Address extends BaseEntity {
     private String name;
     private String locality;
@@ -22,7 +22,5 @@ public class Address extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
     private User user;
 }
