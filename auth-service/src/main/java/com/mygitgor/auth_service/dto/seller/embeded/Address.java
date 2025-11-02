@@ -1,8 +1,8 @@
-package com.mygitgor.seller_service.domain;
+package com.mygitgor.auth_service.dto.seller.embeded;
 
-import jakarta.persistence.Embeddable;
+import lombok.Data;
 
-@Embeddable
+@Data
 public class Address {
     private String name;
     private String locality;

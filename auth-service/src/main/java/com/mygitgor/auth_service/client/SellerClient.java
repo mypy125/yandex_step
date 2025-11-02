@@ -1,7 +1,7 @@
 package com.mygitgor.auth_service.client;
 
 import com.mygitgor.auth_service.dto.seller.SellerAuthInfo;
-import com.mygitgor.auth_service.dto.seller.SellerCreateRequest;
+import com.mygitgor.auth_service.dto.seller.SellerDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,13 +39,13 @@ public class SellerClient {
                 });
     }
 
-    public Mono<Void> createSeller(SellerCreateRequest request) {
+    public Mono<SellerDto> createSeller(SellerDto request) {
         return webClientBuilder.build()
                 .post()
                 .uri(baseUrl)
                 .bodyValue(request)
                 .retrieve()
-                .bodyToMono(Void.class)
+                .bodyToMono(SellerDto.class)
                 .onErrorResume(e -> {
                     log.error("Error creating seller: {}", request.getEmail(), e);
                     return Mono.error(new RuntimeException("Failed to create seller"));

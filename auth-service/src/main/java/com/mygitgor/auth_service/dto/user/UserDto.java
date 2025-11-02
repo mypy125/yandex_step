@@ -3,7 +3,7 @@ package com.mygitgor.auth_service.dto.user;
 import lombok.Data;
 
 @Data
-public class UserCreateRequest {
+public class UserDto {
     private String email;
     private String fullName;
     private String otp;

@@ -11,6 +11,7 @@ import lombok.*;
 @Entity
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "sellers")
@@ -44,7 +45,7 @@ public class Seller extends BaseEntity{
     private String NDS;
 
     @Column(name = "email_verified")
-    private boolean isEmailVerified = false;
+    private Boolean emailVerified = false;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "account_status")
@@ -54,6 +55,21 @@ public class Seller extends BaseEntity{
     public void prePersist() {
         if(this.getRole()==null){
             this.setRole(USER_ROLE.ROLE_SELLER);
+        }
+        if (this.emailVerified == null) {
+            this.emailVerified = false;
+        }
+        if (this.accountStatus == null) {
+            this.accountStatus = AccountStatus.PENDING_VERIFICATION;
+        }
+        if (this.businessDetails == null) {
+            this.businessDetails = new BusinessDetails();
+        }
+        if (this.bankDetails == null) {
+            this.bankDetails = new BankDetails();
+        }
+        if (this.pickupAddress == null) {
+            this.pickupAddress = new Address();
         }
 
     }

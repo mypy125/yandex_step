@@ -6,8 +6,8 @@ import com.mygitgor.auth_service.client.UserClient;
 import com.mygitgor.auth_service.domain.BlacklistedToken;
 import com.mygitgor.auth_service.dto.*;
 import com.mygitgor.auth_service.dto.response.AuthResponse;
-import com.mygitgor.auth_service.dto.seller.SellerCreateRequest;
-import com.mygitgor.auth_service.dto.user.UserCreateRequest;
+import com.mygitgor.auth_service.dto.seller.SellerDto;
+import com.mygitgor.auth_service.dto.user.UserDto;
 import com.mygitgor.auth_service.dto.user.UserInfo;
 import com.mygitgor.auth_service.jwt.JwtProvider;
 import com.mygitgor.auth_service.repository.BlacklistedTokenRepository;
@@ -85,15 +85,13 @@ public class AuthServiceImpl implements AuthService {
 
                     if (role == USER_ROLE.ROLE_CUSTOMER) {
                         return registerCustomer(request);
-                    } else if (role == USER_ROLE.ROLE_SELLER) {
-                        return registerSeller(request);
                     }
                     return Mono.error(new RuntimeException("Unsupported role: " + role));
                 });
     }
 
     private Mono<AuthResponse> registerCustomer(SignupRequest request) {
-        UserCreateRequest userRequest = new UserCreateRequest();
+        UserDto userRequest = new UserDto();
         userRequest.setEmail(request.getEmail());
         userRequest.setFullName(request.getFullName());
         userRequest.setOtp(request.getOtp());
@@ -104,15 +102,12 @@ public class AuthServiceImpl implements AuthService {
                 .then(generateAuthResponse(request.getEmail(), USER_ROLE.ROLE_CUSTOMER));
     }
 
-    private Mono<AuthResponse> registerSeller(SignupRequest request) {
-        SellerCreateRequest sellerRequest = new SellerCreateRequest();
-        sellerRequest.setEmail(request.getEmail());
-        sellerRequest.setFullName(request.getFullName());
-        sellerRequest.setOtp(request.getOtp());
+    @Override
+    public Mono<AuthResponse> registerSeller(SellerDto request) {
 
         return verificationService.sendOtp(request.getEmail(), USER_ROLE.ROLE_SELLER, "REGISTRATION")
                 .flatMap(verificationCode -> {
-                    return sellerClient.createSeller(sellerRequest)
+                    return sellerClient.createSeller(request)
                             .then(generateAuthResponse(request.getEmail(), USER_ROLE.ROLE_SELLER));
                 });
     }
@@ -150,6 +145,22 @@ public class AuthServiceImpl implements AuthService {
             log.error("Error validating token", error);
             return Mono.just(false);
         });
+    }
+
+    @Override
+    public Mono<AuthResponse> verifyAndCompleteSellerRegistration(String email, String otp) {
+        return verificationService.validateOtp(email, otp, "REGISTRATION")
+                .flatMap(valid -> {
+                    if (!valid) {
+                        return Mono.error(new RuntimeException("Invalid OTP for seller registration"));
+                    }
+
+                    return sellerClient.verifyEmail(email)
+                            .then(generateAuthResponse(email, USER_ROLE.ROLE_SELLER))
+                            .doOnSuccess(response ->
+                                    log.info("Seller registration completed and email verified: {}", email)
+                            );
+                });
     }
 
     @Override

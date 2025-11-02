@@ -7,7 +7,7 @@ import lombok.Data;
 public class SellerAuthInfo {
     private String id;
     private String email;
-    private String fullName;
+    private String sellerName;
     private USER_ROLE role;
     private boolean emailVerified;
 }

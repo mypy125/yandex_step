@@ -6,7 +6,6 @@ import com.mygitgor.seller_service.domain.details.BankDetails;
 import com.mygitgor.seller_service.domain.details.BusinessDetails;
 import lombok.Data;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -21,8 +20,18 @@ public class SellerDto {
     private BankDetails bankDetails;
     private Address pickupAddress;
     private String NDS;
-    private boolean emailVerified;
+    private Boolean emailVerified;
     private AccountStatus accountStatus;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+
+    public Boolean getEmailVerified() {
+        return emailVerified != null ? emailVerified : false;
+    }
+
+    public AccountStatus getAccountStatus() {
+        return accountStatus != null ? accountStatus : AccountStatus.PENDING_VERIFICATION;
+    }
+
+    public USER_ROLE getRole() {
+        return role != null ? role : USER_ROLE.ROLE_SELLER;
+    }
 }

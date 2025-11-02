@@ -1,7 +1,7 @@
 package com.mygitgor.auth_service.client;
 
 import com.mygitgor.auth_service.dto.user.UserAuthInfo;
-import com.mygitgor.auth_service.dto.user.UserCreateRequest;
+import com.mygitgor.auth_service.dto.user.UserDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,13 +39,13 @@ public class UserClient {
                 });
     }
 
-    public Mono<Void> createUser(UserCreateRequest request) {
+    public Mono<UserDto> createUser(UserDto request) {
         return webClientBuilder.build()
                 .post()
                 .uri(baseUrl)
                 .bodyValue(request)
                 .retrieve()
-                .bodyToMono(Void.class)
+                .bodyToMono(UserDto.class)
                 .onErrorResume(e -> {
                     log.error("Error creating user: {}", request.getEmail(), e);
                     return Mono.error(new RuntimeException("Failed to create user"));
