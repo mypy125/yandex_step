@@ -10,6 +10,8 @@ import com.mygitgor.seller_service.dto.USER_ROLE;
 import com.mygitgor.seller_service.mapping.SellerMapper;
 import com.mygitgor.seller_service.repository.SellerRepository;
 import com.mygitgor.seller_service.service.impl.sellerServiceImpl;
+import com.sun.jdi.request.DuplicateRequestException;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -76,13 +78,133 @@ public class SellerServiceTest {
     }
 
     @Test
-    public void existsByEmail_ShouldReturnTrue_WhenSellerExists() {
+    void existsByEmail_ShouldReturnTrue_WhenSellerExists() {
         when(sellerRepository.findByEmail("john@seller.com")).thenReturn(Optional.of(testSeller));
 
         boolean result = sellerService.existsByEmail("john@seller.com");
 
         assertTrue(result);
         verify(sellerRepository).findByEmail("john@seller.com");
+    }
+
+    @Test
+    void existsByEmail_ShouldReturnFalse_WhenSellerNotExists() {
+        when(sellerRepository.findByEmail("notfound@seller.com")).thenReturn(Optional.empty());
+
+        boolean result = sellerService.existsByEmail("notfound@seller.com");
+
+        assertFalse(result);
+    }
+
+    @Test
+    void getAuthInfo_ShouldReturnAuthInfo_WhenSellerExists() {
+        when(sellerRepository.findByEmail("john@seller.com")).thenReturn(Optional.of(testSeller));
+        when(sellerMapper.toSellerAuthInfo(testSeller)).thenReturn(authInfo);
+
+        SellerAuthInfo result = sellerService.getAuthInfo("john@seller.com");
+
+        assertNotNull(result);
+        assertEquals("john@seller.com", result.getEmail());
+        assertEquals("John Seller", result.getFullName());
+        verify(sellerRepository).findByEmail("john@seller.com");
+        verify(sellerMapper).toSellerAuthInfo(testSeller);
+    }
+
+    @Test
+    void getAuthInfo_ShouldThrowException_WhenSellerNotFound() {
+        when(sellerRepository.findByEmail("missing@seller.com")).thenReturn(Optional.empty());
+
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+                sellerService.getAuthInfo("missing@seller.com")
+        );
+
+        assertEquals("seller not found with email missing@seller.com", ex.getMessage());
+    }
+
+    @Test
+    void createSeller_ShouldCreateSeller_WhenEmailNotExists() {
+        when(sellerRepository.findByEmail(sellerDto.getEmail())).thenReturn(Optional.empty());
+        when(sellerMapper.toSeller(sellerDto)).thenReturn(testSeller);
+        when(passwordEncoder.encode("plainPass")).thenReturn("encodedPass");
+        when(sellerRepository.save(any(Seller.class))).thenReturn(testSeller);
+        when(sellerMapper.toSellerDto(testSeller)).thenReturn(sellerDto);
+
+        SellerDto result = sellerService.createSeller(sellerDto);
+
+        assertNotNull(result);
+        assertEquals("john@seller.com", result.getEmail());
+        verify(passwordEncoder).encode("plainPass");
+        verify(sellerRepository).save(any(Seller.class));
+        verify(sellerMapper).toSellerDto(testSeller);
+    }
+
+    @Test
+    void createSeller_ShouldThrowDuplicateRequestException_WhenEmailExists() {
+        when(sellerRepository.findByEmail(sellerDto.getEmail())).thenReturn(Optional.of(testSeller));
+
+        DuplicateRequestException ex = assertThrows(DuplicateRequestException.class, () ->
+                sellerService.createSeller(sellerDto)
+        );
+
+        assertEquals("seller with email 'john@seller.com' already exists", ex.getMessage());
+        verify(sellerRepository, never()).save(any());
+    }
+
+    @Test
+    void verifyEmail_ShouldSetEmailVerifiedTrue_WhenNotVerified() {
+        testSeller.setEmailVerified(false);
+        when(sellerRepository.findByEmail("john@seller.com")).thenReturn(Optional.of(testSeller));
+
+        sellerService.verifyEmail("john@seller.com");
+
+        assertTrue(testSeller.getEmailVerified());
+        verify(sellerRepository).save(testSeller);
+    }
+
+    @Test
+    void verifyEmail_ShouldNotSave_WhenAlreadyVerified() {
+        testSeller.setEmailVerified(true);
+        when(sellerRepository.findByEmail("john@seller.com")).thenReturn(Optional.of(testSeller));
+
+        sellerService.verifyEmail("john@seller.com");
+
+        verify(sellerRepository, never()).save(any());
+    }
+
+    @Test
+    void getSellerByEmail_ShouldReturnSeller_WhenExists() {
+        when(sellerRepository.findByEmail("john@seller.com")).thenReturn(Optional.of(testSeller));
+
+        Seller result = sellerService.getSellerByEmail("john@seller.com");
+
+        assertNotNull(result);
+        assertEquals("john@seller.com", result.getEmail());
+    }
+
+    @Test
+    void getSellerByEmail_ShouldThrowException_WhenNotFound() {
+        when(sellerRepository.findByEmail("missing@seller.com")).thenReturn(Optional.empty());
+
+        EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
+                sellerService.getSellerByEmail("missing@seller.com")
+        );
+
+        assertEquals("seller not found with email missing@seller.com", ex.getMessage());
+    }
+
+    @Test
+    void updateSeller_ShouldUpdateSeller_WhenExists() {
+        when(sellerRepository.findByEmail("john@seller.com")).thenReturn(Optional.of(testSeller));
+        doNothing().when(sellerMapper).updateSellerFromDto(sellerDto, testSeller);
+        when(sellerRepository.save(testSeller)).thenReturn(testSeller);
+        when(sellerMapper.toSellerDto(testSeller)).thenReturn(sellerDto);
+
+        SellerDto result = sellerService.updateSeller("john@seller.com", sellerDto);
+
+        assertNotNull(result);
+        assertEquals("john@seller.com", result.getEmail());
+        verify(sellerMapper).updateSellerFromDto(sellerDto, testSeller);
+        verify(sellerRepository).save(testSeller);
     }
 
 }

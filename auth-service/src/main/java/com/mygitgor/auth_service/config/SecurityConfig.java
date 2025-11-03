@@ -13,6 +13,7 @@ import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.Authentication;
@@ -31,7 +32,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 @Configuration
-@EnableWebSecurity
+@EnableWebFluxSecurity
 @AllArgsConstructor
 public class SecurityConfig {
     private final TokenCacheService tokenCacheService;
@@ -119,11 +120,6 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }
-
-    @Bean
-    public CorsWebFilter corsWebFilter() {
-        return new CorsWebFilter(corsConfigurationSource());
     }
 
     @Bean

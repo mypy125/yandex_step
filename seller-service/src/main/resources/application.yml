@@ -6,7 +6,7 @@ spring:
     name: seller-service
 
   datasource:
-    url: ${LOCAL_DB_URL:jdbc:postgresql://localhost:5432/seller_db}
+    url: ${LOCAL_DB_URL:jdbc:postgresql}
     username: ${LOCAL_DB_USERNAME:root}
     password: ${LOCAL_DB_PASSWORD:root}
     driver-class-name: org.postgresql.Driver

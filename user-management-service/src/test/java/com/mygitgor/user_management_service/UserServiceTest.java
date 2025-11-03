@@ -70,7 +70,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void findUserByEmail_IfExists_ReturnUserDto(){
+    void findUserByEmail_IfExists_ReturnUserDto(){
         String email = "test@example.com";
         when(userRepository.findByEmail(email))
                 .thenReturn(Optional.of(testUser));
@@ -87,7 +87,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void findUserByEmail_ShouldException_WhenUserNotFound() {
+    void findUserByEmail_ShouldException_WhenUserNotFound() {
         String email = "nonexistent@example.com";
         when(userRepository.findByEmail(email))
                 .thenReturn(Optional.empty());
@@ -100,7 +100,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void createUserFromAuthRequest_ShouldCreateUser_WhenEmailNotExists() {
+    void createUserFromAuthRequest_ShouldCreateUser_WhenEmailNotExists() {
         when(userRepository.findByEmail(testSignupRequest.getEmail()))
                 .thenReturn(Optional.empty());
         when(passwordEncoder.encode(testSignupRequest.getOtp()))
@@ -133,7 +133,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void createUserFromAuthRequest_ShouldThrowException_WhenEmailAlreadyExists() {
+    void createUserFromAuthRequest_ShouldThrowException_WhenEmailAlreadyExists() {
         when(userRepository.findByEmail(testSignupRequest.getEmail()))
                 .thenReturn(Optional.of(testUser));
 
@@ -150,7 +150,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void createUserByUserDto_ShouldCreateUser_WithUserMapper() {
+    void createUserByUserDto_ShouldCreateUser_WithUserMapper() {
         when(userMapper.toUser(testUserDto))
                 .thenReturn(testUser);
         when(userRepository.save(testUser))
@@ -171,7 +171,7 @@ public class UserServiceTest {
     }
 
     @Test
-    public void createUserByUserDto_ShouldHandleNullFields() {
+    void createUserByUserDto_ShouldHandleNullFields() {
         UserDto partialUserDto = UserDto.builder()
                 .email("partial@example.com")
                 .fullName("Partial User")

@@ -16,7 +16,6 @@ spring:
           max-attempts: 3
           max-interval: 10000ms
 
-
 brevo:
   api-key: ${BREVO_API_KEY}
   from-email: ${BREVO_FROM_EMAIL:gor1990.mkhitatryan@gmail.com}
