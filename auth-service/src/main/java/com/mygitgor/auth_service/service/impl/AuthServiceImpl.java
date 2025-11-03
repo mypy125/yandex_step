@@ -5,6 +5,8 @@ import com.mygitgor.auth_service.client.SellerClient;
 import com.mygitgor.auth_service.client.UserClient;
 import com.mygitgor.auth_service.domain.BlacklistedToken;
 import com.mygitgor.auth_service.dto.*;
+import com.mygitgor.auth_service.dto.login.LoginRequest;
+import com.mygitgor.auth_service.dto.login.SignupRequest;
 import com.mygitgor.auth_service.dto.response.AuthResponse;
 import com.mygitgor.auth_service.dto.seller.SellerDto;
 import com.mygitgor.auth_service.dto.user.UserDto;
@@ -41,14 +43,49 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
-    public Mono<AuthResponse> login(LoginRequest request, USER_ROLE role) {
+    public Mono<AuthResponse> login(LoginRequest request) {
         return verificationService.validateOtp(request.getEmail(), request.getOtp(), "LOGIN")
                 .flatMap(valid -> {
                     if (!valid) {
                         return Mono.error(new RuntimeException("Invalid OTP"));
                     }
-                    return generateAuthResponse(request.getEmail(), role);
+                    return determineUserRoleAndGenerateAuth(request.getEmail());
                 });
+    }
+
+    private Mono<AuthResponse> determineUserRoleAndGenerateAuth(String email) {
+        return sellerClient.existsByEmail(email)
+                .flatMap(isSeller -> {
+                    if (Boolean.TRUE.equals(isSeller)) {
+                        log.info("User identified as SELLER: {}", email);
+                        return sellerClient.getAuthInfo(email)
+                                .map(sellerInfo -> createAuthResponse(sellerInfo.getEmail(), USER_ROLE.ROLE_SELLER));
+                    } else {
+                        return userClient.existsByEmail(email)
+                                .flatMap(isUser -> {
+                                    if (Boolean.TRUE.equals(isUser)) {
+                                        log.info("User identified as CUSTOMER: {}", email);
+                                        return userClient.getAuthInfo(email)
+                                                .map(userInfo -> createAuthResponse(userInfo.getEmail(), USER_ROLE.ROLE_CUSTOMER));
+                                    } else {
+                                        log.error("User not found: {}", email);
+                                        return Mono.error(new RuntimeException("User not found"));
+                                    }
+                                });
+                    }
+                })
+                .onErrorResume(e -> {
+                    log.error("Error determining user role for: {}", email, e);
+                    return Mono.error(new RuntimeException("Authentication failed"));
+                });
+    }
+
+    @Override
+    public Mono<Void> requestLoginOtp(String email, USER_ROLE role) {
+        return verificationService.sendOtp(email, role, "LOGIN")
+                .then()
+                .doOnSuccess(v -> log.info("Login OTP sent to: {}", email))
+                .doOnError(e -> log.error("Failed to send login OTP to: {}", email, e));
     }
 
     private Mono<AuthResponse> generateAuthResponse(String email, USER_ROLE role) {
@@ -67,12 +104,13 @@ public class AuthServiceImpl implements AuthService {
 
         cacheActiveToken(token, email, role);
 
-        AuthResponse authResponse = new AuthResponse();
-        authResponse.setJwt(token);
-        authResponse.setMessage("Login success");
-        authResponse.setRole(role);
-
-        return authResponse;
+        return AuthResponse.builder()
+                .jwt(token)
+                .message("Login success")
+                .role(role)
+                .email(email)
+                .timestamp(LocalDateTime.now())
+                .build();
     }
 
     @Override
@@ -95,7 +133,6 @@ public class AuthServiceImpl implements AuthService {
         userRequest.setEmail(request.getEmail());
         userRequest.setFullName(request.getFullName());
         userRequest.setOtp(request.getOtp());
-        userRequest.setMobile("37444******");
 
         return userClient.createUser(userRequest)
                 .then(cartClient.createCart(request.getEmail()))
@@ -104,7 +141,6 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public Mono<AuthResponse> registerSeller(SellerDto request) {
-
         return verificationService.sendOtp(request.getEmail(), USER_ROLE.ROLE_SELLER, "REGISTRATION")
                 .flatMap(verificationCode -> {
                     return sellerClient.createSeller(request)

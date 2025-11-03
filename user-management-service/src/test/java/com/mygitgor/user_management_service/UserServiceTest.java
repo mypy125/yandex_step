@@ -6,8 +6,8 @@ import com.mygitgor.user_management_service.dto.SignupRequest;
 import com.mygitgor.user_management_service.dto.UserDto;
 import com.mygitgor.user_management_service.mapper.UserMapper;
 import com.mygitgor.user_management_service.repository.UserRepository;
-import com.mygitgor.user_management_service.service.NotificationService;
 import com.mygitgor.user_management_service.service.impl.UserServiceImpl;
+import com.sun.jdi.request.DuplicateRequestException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,9 +32,6 @@ public class UserServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
-
-    @Mock
-    private NotificationService notificationService;
 
     @Mock
     private UserMapper userMapper;
@@ -115,6 +112,14 @@ public class UserServiceTest {
                     return user;
                 });
 
+        UserDto expectedDto = UserDto.builder()
+                .email(testSignupRequest.getEmail())
+                .fullName(testSignupRequest.getFullName())
+                .role(USER_ROLE.ROLE_CUSTOMER)
+                .build();
+
+        when(userMapper.toUserDto(any(User.class))).thenReturn(expectedDto);
+
         UserDto result = userService.createUser(testSignupRequest);
 
         assertNotNull(result);
@@ -125,8 +130,6 @@ public class UserServiceTest {
         verify(userRepository, times(1)).findByEmail(testSignupRequest.getEmail());
         verify(passwordEncoder, times(1)).encode(testSignupRequest.getOtp());
         verify(userRepository, times(1)).save(any(User.class));
-        verify(notificationService, times(1))
-                .sendOtpToNotificationService(testSignupRequest.getEmail(), testSignupRequest.getOtp());
     }
 
     @Test
@@ -134,15 +137,16 @@ public class UserServiceTest {
         when(userRepository.findByEmail(testSignupRequest.getEmail()))
                 .thenReturn(Optional.of(testUser));
 
-        RuntimeException exception = assertThrows(RuntimeException.class,
+        DuplicateRequestException exception = assertThrows(DuplicateRequestException.class,
                 () -> userService.createUser(testSignupRequest));
 
-        assertEquals("User already exists with email " + testSignupRequest.getEmail(),
-                exception.getMessage());
+        assertEquals(String.format("user with email '%s' already exist", testSignupRequest.getEmail()),
+                exception.getMessage()
+        );
 
         verify(userRepository, times(1)).findByEmail(testSignupRequest.getEmail());
         verify(userRepository, never()).save(any(User.class));
-        verify(notificationService, never()).sendOtpToNotificationService(anyString(), anyString());
+        verify(passwordEncoder, never()).encode(anyString());
     }
 
     @Test

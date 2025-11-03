@@ -4,11 +4,13 @@ import com.mygitgor.seller_service.domain.AccountStatus;
 import com.mygitgor.seller_service.domain.Address;
 import com.mygitgor.seller_service.domain.details.BankDetails;
 import com.mygitgor.seller_service.domain.details.BusinessDetails;
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.UUID;
 
 @Data
+@Builder
 public class SellerDto {
     private UUID id;
     private String sellerName;

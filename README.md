@@ -13,18 +13,18 @@
 
 Authentication Service
 dependencies:
-  - User Service (для проверки учетных данных)
-  - Redis (для хранения токенов)
+  - User Service (to verify credentials)
+  - Redis (to saving tokens)
 
 Order Service
 dependencies:
-  - Product Service (проверка наличия товаров)
-  - User Service (информация о пользователе)
-  - Payment Service (обработка платежей)
-  - Coupon Service (применение скидок)
+  - Product Service (checking the availability of goods)
+  - User Service (user information)
+  - Payment Service (payment processing)
+  - Coupon Service (application of discounts)
 
 Payment Service
 dependencies:
-  - Order Service (обновление статуса заказа)
-  - Notification Service (уведомления о платежах)
+  - Order Service (order status update)
+  - Notification Service (payment notifications)
 

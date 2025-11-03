@@ -23,24 +23,10 @@ public interface SellerMapper {
     @Mapping(source = "NDS", target = "NDS")
     @Mapping(source = "emailVerified", target = "emailVerified")
     @Mapping(source = "accountStatus", target = "accountStatus")
-    @Mapping(source = "createdAt", target = "createdAt")
-    @Mapping(source = "updatedAt", target = "updatedAt")
     SellerDto toSellerDto(Seller seller);
 
-    @Mapping(source = "id", target = "id")
-    @Mapping(source = "sellerName", target = "sellerName")
-    @Mapping(source = "email", target = "email")
-    @Mapping(source = "mobile", target = "mobile")
-    @Mapping(source = "password", target = "password")
-    @Mapping(source = "role", target = "role")
-    @Mapping(source = "businessDetails", target = "businessDetails")
-    @Mapping(source = "bankDetails", target = "bankDetails")
-    @Mapping(source = "pickupAddress", target = "pickupAddress")
-    @Mapping(source = "NDS", target = "NDS")
-    @Mapping(source = "emailVerified", target = "emailVerified")
-    @Mapping(source = "accountStatus", target = "accountStatus")
-    @Mapping(source = "createdAt", target = "createdAt")
-    @Mapping(source = "updatedAt", target = "updatedAt")
+    @InheritInverseConfiguration
+    @Mapping(target = "password", ignore = true)
     Seller toSeller(SellerDto sellerDto);
 
     @Mapping(target = "id", ignore = true)

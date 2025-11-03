@@ -6,8 +6,8 @@ import com.mygitgor.user_management_service.dto.SignupRequest;
 import com.mygitgor.user_management_service.dto.UserDto;
 import com.mygitgor.user_management_service.mapper.UserMapper;
 import com.mygitgor.user_management_service.repository.UserRepository;
-import com.mygitgor.user_management_service.service.NotificationService;
 import com.mygitgor.user_management_service.service.UserService;
+import com.sun.jdi.request.DuplicateRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,8 +20,12 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final NotificationService notificationService;
     private final UserMapper userMapper;
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return userRepository.findByEmail(email).isPresent();
+    }
 
     @Override
     public UserDto findByEmail(String email) {
@@ -38,28 +42,28 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto createUser(SignupRequest req) {
-        userRepository.findByEmail(req.getEmail()).ifPresent(u -> {
-            throw new RuntimeException("User already exists with email " + req.getEmail());
-        });
+        if(existsByEmail(req.getEmail())){
+            throw new DuplicateRequestException(
+              String.format("user with email '%s' already exist", req.getEmail())
+            );
+        }
 
         User user = new User();
         user.setEmail(req.getEmail());
         user.setFullName(req.getFullName());
         user.setPassword(passwordEncoder.encode(req.getOtp()));
         user.setRole(USER_ROLE.ROLE_CUSTOMER);
-        userRepository.save(user);
-
-        notificationService.sendOtpToNotificationService(req.getEmail(),req.getOtp());
-        return UserDto.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .fullName(user.getFullName())
-                .role(user.getRole())
-                .build();
+        User createdUser = userRepository.save(user);
+        return userMapper.toUserDto(createdUser);
     }
 
     @Override
     public UserDto createUser(UserDto req) {
+        if(existsByEmail(req.getEmail())){
+            throw new DuplicateRequestException(
+                    String.format("user with email '%s' already exist", req.getEmail())
+            );
+        }
         User user = userMapper.toUser(req);
         userRepository.save(user);
         return userMapper.toUserDto(user);

@@ -1,6 +1,7 @@
 package com.mygitgor.auth_service.controller;
 
 import com.mygitgor.auth_service.dto.*;
+import com.mygitgor.auth_service.dto.login.*;
 import com.mygitgor.auth_service.dto.response.ApiResponse;
 import com.mygitgor.auth_service.dto.response.AuthResponse;
 import com.mygitgor.auth_service.dto.seller.SellerDto;
@@ -37,10 +38,39 @@ public class AuthController {
                 ));
     }
 
-    @PostMapping("/login")
-    public Mono<ResponseEntity<AuthResponse>> login(@RequestBody LoginRequest request, @RequestParam USER_ROLE role
+    @PostMapping("/login/request-otp")
+    public Mono<ResponseEntity<ApiResponse>> requestLoginOtp(@RequestBody LoginOtpRequest request
     ) {
-        return authService.login(request, role)
+        return verificationService.sendOtp(request.getEmail(), request.getRole(), "LOGIN")
+                .map(verificationCode -> ResponseEntity.ok(
+                        new ApiResponse("OTP sent for login", true, null)
+                ))
+                .onErrorResume(e -> Mono.just(
+                        ResponseEntity.badRequest().body(
+                                new ApiResponse(e.getMessage(), false, null)
+                        )
+                ));
+    }
+
+    @PatchMapping("/verify/{otp}")
+    public Mono<ResponseEntity<ApiResponse>> verifyOtp(@PathVariable String otp,
+                                                       @RequestBody VerifyOtpRequest request
+    ) {
+        return verificationService.verifyOtp(otp, request)
+                .map(verified -> ResponseEntity.ok(
+                        new ApiResponse("Verification successful", true, verified)
+                ))
+                .onErrorResume(e -> Mono.just(
+                        ResponseEntity.badRequest().body(
+                                new ApiResponse(e.getMessage(), false, null)
+                        )
+                ));
+    }
+
+    @PostMapping("/login")
+    public Mono<ResponseEntity<AuthResponse>> login(@RequestBody LoginRequest request
+    ) {
+        return authService.login(request)
                 .map(ResponseEntity::ok)
                 .onErrorResume(e -> {
                     log.error("Login failed for {}: {}", request.getEmail(), e.getMessage());
@@ -49,6 +79,22 @@ public class AuthController {
                             .timestamp(LocalDateTime.now())
                             .build();
                     return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse));
+                });
+    }
+
+    @GetMapping("/validate")
+    public Mono<ResponseEntity<ApiResponse>> validateToken(@RequestHeader("Authorization") String authHeader
+    ) {
+        String token = extractTokenFromHeader(authHeader);
+
+        return authService.validateToken(token)
+                .map(valid -> {
+                    if (valid) {
+                        return ResponseEntity.ok(new ApiResponse("Token is valid", true, null));
+                    } else {
+                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                                .body(new ApiResponse("Invalid token", false, null));
+                    }
                 });
     }
 
@@ -107,21 +153,6 @@ public class AuthController {
                 });
     }
 
-    @PatchMapping("/verify/{otp}")
-    public Mono<ResponseEntity<ApiResponse>> verifyOtp(@PathVariable String otp,
-                                                        @RequestBody VerifyOtpRequest request
-    ) {
-        return verificationService.verifyOtp(otp, request)
-                .map(verified -> ResponseEntity.ok(
-                        new ApiResponse("Verification successful", true, verified)
-                ))
-                .onErrorResume(e -> Mono.just(
-                        ResponseEntity.badRequest().body(
-                                new ApiResponse(e.getMessage(), false, null)
-                        )
-                ));
-    }
-
     @PostMapping("/logout")
     public Mono<ResponseEntity<ApiResponse>> logout(@RequestHeader("Authorization") String authHeader
     ) {
@@ -143,22 +174,6 @@ public class AuthController {
                 .onErrorResume(e -> Mono.just(
                         ResponseEntity.badRequest().body(new ApiResponse(e.getMessage(), false, null))
                 ));
-    }
-
-    @GetMapping("/validate")
-    public Mono<ResponseEntity<ApiResponse>> validateToken(@RequestHeader("Authorization") String authHeader
-    ) {
-        String token = extractTokenFromHeader(authHeader);
-
-        return authService.validateToken(token)
-                .map(valid -> {
-                    if (valid) {
-                        return ResponseEntity.ok(new ApiResponse("Token is valid", true, null));
-                    } else {
-                        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                                .body(new ApiResponse("Invalid token", false, null));
-                    }
-                });
     }
 
     private String extractTokenFromHeader(String authHeader) {

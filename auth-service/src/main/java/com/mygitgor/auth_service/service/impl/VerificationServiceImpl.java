@@ -1,10 +1,9 @@
 package com.mygitgor.auth_service.service.impl;
 
 import com.mygitgor.auth_service.client.SellerClient;
-import com.mygitgor.auth_service.client.UserClient;
 import com.mygitgor.auth_service.domain.VerificationCode;
 import com.mygitgor.auth_service.dto.USER_ROLE;
-import com.mygitgor.auth_service.dto.VerifyOtpRequest;
+import com.mygitgor.auth_service.dto.login.VerifyOtpRequest;
 import com.mygitgor.auth_service.repository.VerificationCodeRepository;
 import com.mygitgor.auth_service.service.VerificationService;
 import com.mygitgor.auth_service.utils.OtpUtil;

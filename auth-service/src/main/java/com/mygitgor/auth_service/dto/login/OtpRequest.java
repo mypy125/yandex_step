@@ -1,5 +1,6 @@
-package com.mygitgor.auth_service.dto;
+package com.mygitgor.auth_service.dto.login;
 
+import com.mygitgor.auth_service.dto.USER_ROLE;
 import lombok.Data;
 
 @Data
