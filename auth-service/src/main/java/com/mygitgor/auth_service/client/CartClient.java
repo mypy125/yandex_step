@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono;
 public class CartClient {
     private final WebClient.Builder webClientBuilder;
 
-    @Value("${cart.service.url:http://localhost:8084/api/carts}")
+    @Value("${order.service.url:http://localhost:8084/api/carts}")
     private String baseUrl;
 
     public Mono<Void> createCart(String email) {

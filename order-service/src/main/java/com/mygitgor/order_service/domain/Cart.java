@@ -19,6 +19,7 @@ import java.util.UUID;
 @ToString(callSuper = true, exclude = "cartItems")
 @EqualsAndHashCode(callSuper = true, exclude = "cartItems")
 public class Cart extends BaseEntity{
+
     private UUID userId;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
