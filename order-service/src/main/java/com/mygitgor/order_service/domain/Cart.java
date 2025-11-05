@@ -1,9 +1,6 @@
 package com.mygitgor.order_service.domain;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.HashSet;
@@ -20,7 +17,8 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true, exclude = "cartItems")
 public class Cart extends BaseEntity{
 
-    private UUID userId;
+    @Column(name = "user_id")
+    private String userId;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
@@ -43,7 +41,7 @@ public class Cart extends BaseEntity{
         cartItem.setCart(null);
     }
 
-    public static Cart create(UUID userId) {
+    public static Cart create(String userId) {
         Cart cart = new Cart();
         cart.setUserId(userId);
         cart.setTotalItem(0);

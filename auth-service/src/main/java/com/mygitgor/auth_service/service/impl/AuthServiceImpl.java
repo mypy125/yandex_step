@@ -100,6 +100,10 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private AuthResponse createAuthResponse(String email, USER_ROLE role) {
+        if (email == null) {
+            log.error("Email is null when creating auth response for role: {}", role);
+            throw new IllegalArgumentException("Email cannot be null");
+        }
         String token = jwtProvider.generateToken(email, role);
 
         cacheActiveToken(token, email, role);
@@ -135,8 +139,20 @@ public class AuthServiceImpl implements AuthService {
         userRequest.setOtp(request.getOtp());
 
         return userClient.createUser(userRequest)
-                .then(cartClient.createCart(request.getEmail()))
-                .then(generateAuthResponse(request.getEmail(), USER_ROLE.ROLE_CUSTOMER));
+                .flatMap(createdUser -> {
+                    if (createdUser.getId() == null) {
+                        log.error("User created but ID is null for: {}", request.getEmail());
+                        return Mono.error(new RuntimeException("User creation failed - no ID returned"));
+                    }
+
+                    String userId = createdUser.getId().toString();
+                    log.info("User created with ID: {}, creating cart...", userId);
+
+                    return cartClient.createCart(userId)
+                            .then(generateAuthResponse(request.getEmail(), USER_ROLE.ROLE_CUSTOMER));
+                })
+                .doOnSuccess(response -> log.info("Registration completed: {}", request.getEmail()))
+                .doOnError(error -> log.error("Registration failed: {}", request.getEmail(), error));
     }
 
     @Override

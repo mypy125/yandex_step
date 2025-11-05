@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public class CartDto {
     private UUID id;
-    private UUID userId;
+    private String userId;
     private Set<CartItemDto> cartItems;
     private double totalSellingPrice;
     private int totalItem;

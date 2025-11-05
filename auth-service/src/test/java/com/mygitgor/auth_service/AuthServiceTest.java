@@ -4,6 +4,8 @@ import com.mygitgor.auth_service.client.CartClient;
 import com.mygitgor.auth_service.client.UserClient;
 import com.mygitgor.auth_service.dto.USER_ROLE;
 import com.mygitgor.auth_service.dto.login.SignupRequest;
+import com.mygitgor.auth_service.dto.user.UserAuthInfo;
+import com.mygitgor.auth_service.dto.user.UserDto;
 import com.mygitgor.auth_service.jwt.JwtProvider;
 import com.mygitgor.auth_service.service.VerificationService;
 import com.mygitgor.auth_service.service.impl.AuthServiceImpl;
@@ -16,6 +18,8 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -37,6 +41,9 @@ public class AuthServiceTest {
     private AuthServiceImpl authService;
 
     private SignupRequest signupRequest;
+    private UserAuthInfo mockAuthInfo;
+    private UserDto mockUserResponse;
+    private UUID mockUserId;
 
     @BeforeEach
     void setup() {
@@ -44,6 +51,22 @@ public class AuthServiceTest {
         signupRequest.setEmail("test@example.com");
         signupRequest.setFullName("Test User");
         signupRequest.setOtp("123456");
+
+        mockUserId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+
+        mockAuthInfo = new UserAuthInfo();
+        mockAuthInfo.setId(mockUserId.toString());
+        mockAuthInfo.setEmail("test@example.com");
+        mockAuthInfo.setFullName("Test User");
+        mockAuthInfo.setRole(USER_ROLE.ROLE_CUSTOMER);
+        mockAuthInfo.setEmailVerified(true);
+
+        mockUserResponse = UserDto.builder()
+                .id(mockUserId)
+                .email("test@example.com")
+                .fullName("Test User")
+                .role(USER_ROLE.ROLE_CUSTOMER)
+                .build();
     }
 
     @Test
@@ -51,10 +74,13 @@ public class AuthServiceTest {
         Mockito.when(verificationService.validateOtp("test@example.com", "123456", "REGISTRATION"))
                 .thenReturn(Mono.just(true));
 
-        Mockito.when(userClient.createUser(Mockito.any()))
-                .thenReturn(Mono.empty());
+        Mockito.when(userClient.createUser(Mockito.any(UserDto.class)))
+                .thenReturn(Mono.just(mockUserResponse));
 
-        Mockito.when(cartClient.createCart("test@example.com"))
+        Mockito.when(userClient.getAuthInfo("test@example.com"))
+                .thenReturn(Mono.just(mockAuthInfo));
+
+        Mockito.when(cartClient.createCart(mockUserId.toString()))
                 .thenReturn(Mono.empty());
 
         Mockito.when(jwtProvider.generateToken("test@example.com", USER_ROLE.ROLE_CUSTOMER))

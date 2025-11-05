@@ -20,8 +20,8 @@ spring:
 
 brevo:
   api-key: ${BREVO_API_KEY}
-  from-email: ${BREVO_FROM_EMAIL:gor1990.mkhitatryan@gmail.com}
-  from-name: ${BREVO_FROM_NAME:Ecommerce Multivendor}
+  from-email: ${BREVO_FROM_EMAIL}
+  from-name: ${BREVO_FROM_NAME}
 
 logging:
   level:

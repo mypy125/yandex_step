@@ -16,14 +16,14 @@ public class CartClient {
     @Value("${order.service.url:http://localhost:8084/api/carts}")
     private String baseUrl;
 
-    public Mono<Void> createCart(String email) {
+    public Mono<Void> createCart(String userId) {
         return webClientBuilder.build()
                 .post()
-                .uri(baseUrl + "/create/{email}", email)
+                .uri(baseUrl + "/create/{userId}", userId)
                 .retrieve()
                 .bodyToMono(Void.class)
                 .onErrorResume(e -> {
-                    log.error("Error creating cart for user: {}", email, e);
+                    log.error("Error creating cart for user: {}", userId, e);
                     return Mono.error(new RuntimeException("Failed to create cart"));
                 });
     }
