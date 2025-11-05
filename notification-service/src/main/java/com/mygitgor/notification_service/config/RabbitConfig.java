@@ -1,6 +1,9 @@
 package com.mygitgor.notification_service.config;
 
+import com.mygitgor.notification_service.dto.EmailNotificationMessage;
+import com.mygitgor.notification_service.dto.OtpNotificationMessage;
 import org.springframework.amqp.core.*;
+import org.springframework.amqp.support.converter.DefaultClassMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,6 +12,9 @@ import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFacto
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 public class RabbitConfig {
@@ -27,6 +33,28 @@ public class RabbitConfig {
     public static final String ROUTING_KEY_EMAIL_NOTIFICATION = "email.notification";
     public static final String ROUTING_KEY_SMS_NOTIFICATION = "sms.notification";
     public static final String ROUTING_KEY_PUSH_NOTIFICATION = "push.notification";
+
+    @Bean
+    public MessageConverter jacksonMessageConverter() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.findAndRegisterModules();
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        Jackson2JsonMessageConverter converter = new Jackson2JsonMessageConverter(objectMapper);
+        converter.setClassMapper(classMapper());
+        return converter;
+    }
+
+    @Bean
+    public DefaultClassMapper classMapper() {
+        DefaultClassMapper classMapper = new DefaultClassMapper();
+        classMapper.setTrustedPackages("com.mygitgor.auth_service.dto.messaging", "com.mygitgor.notification_service.dto");
+        Map<String, Class<?>> idClassMapping = new HashMap<>();
+        idClassMapping.put("emailNotification", EmailNotificationMessage.class);
+        idClassMapping.put("otpNotification", OtpNotificationMessage.class);
+        classMapper.setIdClassMapping(idClassMapping);
+        return classMapper;
+    }
 
     @Bean
     public TopicExchange notificationExchange() {
@@ -119,14 +147,6 @@ public class RabbitConfig {
         return BindingBuilder.bind(pushNotificationQueue())
                 .to(notificationExchange())
                 .with(ROUTING_KEY_PUSH_NOTIFICATION);
-    }
-
-    @Bean
-    public MessageConverter jacksonMessageConverter() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.findAndRegisterModules();
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        return new Jackson2JsonMessageConverter(objectMapper);
     }
 
     @Bean

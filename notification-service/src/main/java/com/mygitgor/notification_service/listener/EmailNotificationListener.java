@@ -1,6 +1,7 @@
 package com.mygitgor.notification_service.listener;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mygitgor.notification_service.dto.EmailNotificationMessage;
+import com.mygitgor.notification_service.dto.OtpNotificationMessage;
 import com.rabbitmq.client.Channel;
 import org.springframework.amqp.core.Message;
 import com.mygitgor.notification_service.config.RabbitConfig;
@@ -12,7 +13,6 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -20,39 +20,26 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class EmailNotificationListener {
     private final EmailService emailService;
-    private final ObjectMapper objectMapper;
 
     @RabbitListener(queues = RabbitConfig.EMAIL_OTP_QUEUE)
-    public void handleOtpEmail(Message message) {
+    public void handleOtpEmail(OtpNotificationMessage message) {
         String messageId = generateMessageId();
         try {
-            Map<String, String> emailMessage = convertMessageBody(message);
+            log.info("[{}] Processing OTP email message for: {}, purpose: {}",
+                    messageId,  message.getEmail(), message.getPurpose());
 
-            log.info("[{}] Processing OTP email message: {}", messageId, emailMessage.keySet());
-
-            String to = emailMessage.get("to");
-            String otp = emailMessage.get("otp");
-            String subject = emailMessage.get("subject");
-            String text = emailMessage.get("text");
-            String type = emailMessage.get("type");
-
-            if (to == null || otp == null) {
-                log.error("❌ [{}] Missing required fields in OTP email. To: {}, OTP: {}",
-                        messageId, to, otp);
-                throw new IllegalArgumentException("Missing required fields: 'to' or 'otp'");
+            if (message.getEmail() == null || message.getOtp() == null) {
+                log.error("[{}] Missing required fields in OTP email. Email: {}, OTP: {}",
+                        messageId, message.getEmail(), message.getOtp());
+                throw new IllegalArgumentException("Missing required fields: 'email' or 'otp'");
             }
+            log.info("[{}] Sending OTP email to: {}, OTP: {}", messageId, message.getEmail(), message.getOtp());
 
-            if (subject == null) {
-                subject = "Your Verification Code - Ecommerce Multivendor";
-            }
-
-            if (text == null) {
-                text = "";
-            }
-
-            log.info("[{}] Sending OTP email to: {}, subject: {}", messageId, to, subject);
-            emailService.sendVerificationOtpEmail(to, otp, subject, text);
-            log.info("[{}] OTP email processed successfully for: {}", messageId, to);
+            emailService.sendVerificationOtpEmail(
+                    message.getEmail(),
+                    message.getOtp()
+            );
+            log.info("[{}] OTP email processed successfully for: {}", messageId, message.getEmail());
 
         } catch (IllegalArgumentException e) {
             log.error("[{}] Invalid OTP email message format: {}", messageId, e.getMessage());
@@ -64,29 +51,29 @@ public class EmailNotificationListener {
     }
 
     @RabbitListener(queues = RabbitConfig.EMAIL_NOTIFICATION_QUEUE)
-    public void handleGeneralEmail(Message message) {
+    public void handleGeneralEmail(EmailNotificationMessage message) {
         String messageId = generateMessageId();
         try {
-            Map<String, String> emailMessage = convertMessageBody(message);
+            log.info("[{}] Processing general email message for: {}, subject: {}",
+                    messageId,  message.getEmail(), message.getSubject());
 
-            log.info("[{}] Processing general email message: {}", messageId, emailMessage.keySet());
-
-            String to = emailMessage.get("to");
-            String subject = emailMessage.get("subject");
-            String text = emailMessage.get("text");
-            String templateType = emailMessage.get("templateType");
-
-            if (to == null || subject == null || text == null) {
-                log.error("[{}] Missing required fields in general email. To: {}, Subject: {}, Text: {}",
-                        messageId, to, subject, text);
-                throw new IllegalArgumentException("Missing required fields: 'to', 'subject' or 'text'");
+            if (message.getEmail() == null || message.getSubject() == null) {
+                log.error("[{}] Missing required fields in general email. Email: {}, Subject: {}",
+                        messageId, message.getEmail(), message.getSubject());
+                throw new IllegalArgumentException("Missing required fields: 'email' or 'subject'");
             }
 
             log.info("[{}] Sending general email to: {}, subject: {}, template: {}",
-                    messageId, to, subject, templateType);
+                    messageId, message.getEmail(), message.getSubject(), message.getTemplateName());
 
-            emailService.sendVerificationOtpEmail(to, "GENERAL_OTP", subject, text);
-            log.info("[{}] General email processed successfully for: {}", messageId, to);
+
+            String emailContent = buildEmailContentFromMessage(message);
+            emailService.sendGeneralEmail(
+                    message.getEmail(),
+                    message.getSubject(),
+                    emailContent
+            );
+            log.info("[{}] General email processed successfully for: {}", messageId, message.getEmail());
 
         } catch (IllegalArgumentException e) {
             log.error("[{}] Invalid general email message format: {}", messageId, e.getMessage());
@@ -98,58 +85,79 @@ public class EmailNotificationListener {
     }
 
     @RabbitListener(queues = RabbitConfig.EMAIL_OTP_DLQ)
-    public void handleOtpEmailDlq(Message failedMessage, Channel channel) {
+    public void handleOtpEmailDlq(OtpNotificationMessage failedMessage, Message amqpMessage, Channel channel) {
         String messageId = generateMessageId();
         try {
-            Map<String, String> originalMessage = convertMessageBody(failedMessage);
+            log.warn("[{}] Processing OTP email from DLQ. Original recipient: {}, Purpose: {}",
+                    messageId, failedMessage.getEmail(), failedMessage.getPurpose());
 
-            log.warn("[{}] Processing OTP email from DLQ. Original recipient: {}, Headers: {}",
-                    messageId,
-                    originalMessage.get("to"),
-                    failedMessage.getMessageProperties().getHeaders());
+            logFailedOtpEmail(failedMessage);
 
-            logFailedOtpEmail(originalMessage);
-
-            channel.basicAck(failedMessage.getMessageProperties().getDeliveryTag(), false);
+            channel.basicAck(amqpMessage.getMessageProperties().getDeliveryTag(), false);
             log.info("[{}] OTP DLQ message processed successfully", messageId);
 
         } catch (Exception e) {
             log.error("[{}] Failed to process OTP email from DLQ", messageId, e);
-            rejectMessage(channel, failedMessage, messageId);
+            rejectMessage(channel, amqpMessage, messageId);
         }
     }
 
     @RabbitListener(queues = RabbitConfig.EMAIL_NOTIFICATION_DLQ)
-    public void handleGeneralEmailDlq(Message failedMessage, Channel channel) {
+    public void handleGeneralEmailDlq(EmailNotificationMessage failedMessage, Message amqpMessage, Channel channel) {
         String messageId = generateMessageId();
         try {
-            Map<String, String> originalMessage = convertMessageBody(failedMessage);
+            log.warn("[{}] Processing general email from DLQ. Original recipient: {}, Subject: {}",
+                    messageId, failedMessage.getEmail(), failedMessage.getSubject());
 
-            log.warn("[{}] Processing general email from DLQ. Original recipient: {}, Headers: {}",
-                    messageId,
-                    originalMessage.get("to"),
-                    failedMessage.getMessageProperties().getHeaders());
+            logFailedGeneralEmail(failedMessage);
 
-            logFailedGeneralEmail(originalMessage);
-
-            channel.basicAck(failedMessage.getMessageProperties().getDeliveryTag(), false);
+            channel.basicAck(amqpMessage.getMessageProperties().getDeliveryTag(), false);
             log.info("[{}] General DLQ message processed successfully", messageId);
 
         } catch (Exception e) {
             log.error("[{}] Failed to process general email from DLQ", messageId, e);
-            rejectMessage(channel, failedMessage, messageId);
+            rejectMessage(channel, amqpMessage, messageId);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private Map<String, String> convertMessageBody(Message message) {
-        try {
-            String messageBody = new String(message.getBody(), "UTF-8");
-            return objectMapper.readValue(messageBody, Map.class);
-        } catch (Exception e) {
-            log.error("Failed to deserialize message body. Body: {}", new String(message.getBody()), e);
-            throw new AmqpRejectAndDontRequeueException("Invalid message format: " + e.getMessage());
+    private String buildEmailContentFromMessage(EmailNotificationMessage message) {
+        StringBuilder content = new StringBuilder();
+
+        content.append("Notification Details:\n\n");
+
+        if (message.getTemplateName() != null) {
+            content.append("Template: ").append(message.getTemplateName()).append("\n");
         }
+
+        if (message.getTemplateData() != null && !message.getTemplateData().isEmpty()) {
+            content.append("Data:\n");
+            message.getTemplateData().forEach((key, value) ->
+                    content.append("  - ").append(key).append(": ").append(value).append("\n")
+            );
+        }
+
+        if (message.getTimestamp() != null) {
+            content.append("\nSent at: ").append(message.getTimestamp());
+        }
+
+        return content.toString();
+    }
+
+    private void logFailedOtpEmail(OtpNotificationMessage message) {
+        log.error("FAILED OTP EMAIL - Email: {}, OTP: {}, Purpose: {}, Role: {}, Time: {}",
+                message.getEmail(),
+                message.getOtp(),
+                message.getPurpose(),
+                message.getUserRole(),
+                LocalDateTime.now());
+    }
+
+    private void logFailedGeneralEmail(EmailNotificationMessage message) {
+        log.error("FAILED GENERAL EMAIL - Email: {}, Subject: {}, Template: {}, Time: {}",
+                message.getEmail(),
+                message.getSubject(),
+                message.getTemplateName(),
+                LocalDateTime.now());
     }
 
     private void rejectMessage(Channel channel, Message message, String messageId) {
@@ -162,15 +170,5 @@ public class EmailNotificationListener {
 
     private String generateMessageId() {
         return UUID.randomUUID().toString().substring(0, 8);
-    }
-
-    private void logFailedOtpEmail(Map<String, String> message) {
-        log.error("FAILED OTP EMAIL - To: {}, OTP: {}, Time: {}",
-                message.get("to"), message.get("otp"), LocalDateTime.now());
-    }
-
-    private void logFailedGeneralEmail(Map<String, String> message) {
-        log.error("FAILED GENERAL EMAIL - To: {}, Subject: {}, Time: {}",
-                message.get("to"), message.get("subject"), LocalDateTime.now());
     }
 }
