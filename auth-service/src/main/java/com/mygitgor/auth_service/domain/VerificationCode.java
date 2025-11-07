@@ -2,10 +2,7 @@ package com.mygitgor.auth_service.domain;
 
 import com.mygitgor.auth_service.dto.USER_ROLE;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
@@ -15,6 +12,7 @@ import java.util.UUID;
 @Table(name = "verification_codes")
 @Getter
 @Setter
+@Builder
 @AllArgsConstructor
 public class VerificationCode {
 

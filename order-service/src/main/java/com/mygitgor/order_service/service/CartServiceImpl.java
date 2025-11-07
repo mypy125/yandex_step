@@ -17,11 +17,11 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public Cart createUserCart(String userId) {
+    public void createUserCart(String userId) {
         if (cartRepository.existsByUserId(userId)) {
             throw new DuplicateRequestException("Cart already exists for user: " + userId);
         }
         Cart cart = Cart.create(userId);
-        return cartRepository.save(cart);
+        cartRepository.save(cart);
     }
 }

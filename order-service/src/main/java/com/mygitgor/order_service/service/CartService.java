@@ -4,5 +4,5 @@ import com.mygitgor.order_service.domain.Cart;
 
 public interface CartService {
     Cart getUserCart(String userId);
-    Cart createUserCart(String userId);
+    void createUserCart(String userId);
 }
