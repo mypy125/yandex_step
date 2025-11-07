@@ -9,6 +9,15 @@
 - **Developer:** Gagikovich Gor Mkhitaryan
 - **Project Diagram:** [Ecommerce_Project_Structure](https://miro.com/app/board/uXjVJ12s_mg=/?share_link_id=379785323839)
 
+**API-Gateway**
+
+Gateway responsibilities:
+ - Bearer token availability check
+ - CORS protection
+ - Rate limiting
+ - Request logging
+ - Load balancing
+
 **App Services Dependencies**
 
 Authentication Service

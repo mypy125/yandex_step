@@ -18,31 +18,53 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class RateLimitingFilter extends AbstractGatewayFilterFactory<RateLimitingFilter.Config> {
-
     private final ReactiveRedisTemplate<String, String> redisTemplate;
-    private final ObjectMapper objectMapper;
     private final RedisScript<List<Long>> rateLimitScript;
-
-    public RateLimitingFilter() {
-        super(Config.class);
-        this.redisTemplate = null;
-        this.objectMapper = new ObjectMapper();
-        this.rateLimitScript = null;
-    }
+    private final ObjectMapper objectMapper;
 
     @Override
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
-            log.debug("Rate limiting check - replenishRate: {}, burstCapacity: {}",
-                    config.getReplenishRate(), config.getBurstCapacity());
+            String clientIp = getClientIp(exchange);
+            String redisKey = "rate_limit:" + clientIp;
 
-            return chain.filter(exchange);
+            List<String> keys = List.of(redisKey);
+            List<String> args = List.of(
+                    String.valueOf(config.getReplenishRate()),
+                    String.valueOf(config.getBurstCapacity()),
+                    String.valueOf(System.currentTimeMillis())
+            );
+
+            return redisTemplate.execute(rateLimitScript, keys, args)
+                    .next()
+                    .flatMap(results -> {
+                        Long allowed = results.get(0);
+                        Long tokensLeft = results.get(1);
+
+                        if (allowed == 1L) {
+                            log.debug("Request allowed for {}. Tokens left: {}", clientIp, tokensLeft);
+                            return chain.filter(exchange);
+                        } else {
+                            log.warn("Rate limit exceeded for {}", clientIp);
+                            return handleRateLimitExceeded(exchange, config);
+                        }
+                    })
+                    .onErrorResume(e -> {
+                        log.error("Rate limiting error: {}", e.getMessage());
+                        return chain.filter(exchange);
+                    });
         };
+    }
+
+    private String getClientIp(ServerWebExchange exchange) {
+        String forwarded = exchange.getRequest().getHeaders().getFirst("X-Forwarded-For");
+        return forwarded != null ? forwarded : Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
     }
 
     private Mono<Void> handleRateLimitExceeded(ServerWebExchange exchange, Config config) {

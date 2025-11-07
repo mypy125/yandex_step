@@ -14,15 +14,13 @@ import java.util.UUID;
 @NoArgsConstructor
 @Table(name = "carts")
 @ToString(callSuper = true, exclude = "cartItems")
-@EqualsAndHashCode(callSuper = true, exclude = "cartItems")
+@EqualsAndHashCode(callSuper = true,exclude = "cartItems")
 public class Cart extends BaseEntity{
 
     @Column(name = "user_id")
     private String userId;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
     private Set<CartItem> cartItems = new HashSet<>();
 
     private double totalSellingPrice;

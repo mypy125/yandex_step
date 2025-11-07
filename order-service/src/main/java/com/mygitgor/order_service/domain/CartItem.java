@@ -12,13 +12,11 @@ import java.util.UUID;
 @NoArgsConstructor
 @Table(name = "cart_items")
 @ToString(callSuper = true, exclude = "cart")
-@EqualsAndHashCode(callSuper = true, exclude = "cart")
+@EqualsAndHashCode(callSuper = true,exclude = "cart")
 public class CartItem extends BaseEntity{
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
     private Cart cart;
 
     private UUID productId;

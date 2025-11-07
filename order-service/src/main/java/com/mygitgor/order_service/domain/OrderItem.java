@@ -12,13 +12,11 @@ import java.util.UUID;
 @NoArgsConstructor
 @Table(name = "order_items")
 @ToString(callSuper = true, exclude = "order")
-@EqualsAndHashCode(callSuper = true, exclude = "order")
+@EqualsAndHashCode(callSuper = true,exclude = "order")
 public class OrderItem extends BaseEntity{
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
     private Order order;
 
     private UUID productId;

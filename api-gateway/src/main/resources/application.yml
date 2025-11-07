@@ -126,8 +126,8 @@ spring:
 
   data:
     redis:
-      host: ${RDS_REMOTE_HOST:localhost}
-      port: ${RDS_REMOTE_PORT:6379}
+      host: ${RDS_REMOTE_HOST}
+      port: ${RDS_REMOTE_PORT}
       timeout: 5000ms
       lettuce:
         pool:
