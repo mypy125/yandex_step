@@ -78,6 +78,7 @@
 			<version>${hibernate-core.version}</version>
 			<type>pom</type>
 		</dependency>
+
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-api</artifactId>

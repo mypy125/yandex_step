@@ -1,0 +1,185 @@
+server:
+  port: 8080
+  forward-headers-strategy: framework
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
+      routes:
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - name: RateLimitingFilter
+              args:
+                replenishRate: 20
+                burstCapacity: 40
+            - name: LoggingFilter
+            - StripPrefix=1
+
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**, /api/addresses/**
+          filters:
+            - name: AuthenticationFilter
+            - name: RateLimitingFilter
+              args:
+                replenishRate: 15
+                burstCapacity: 30
+            - name: LoggingFilter
+            - StripPrefix=1
+
+        - id: product-service-public
+          uri: lb://product-service
+          predicates:
+            - Path=/api/products, /api/products/{id}, /api/categories, /api/products/*/reviews
+            - Method=GET
+          filters:
+            - name: RateLimitingFilter
+              args:
+                replenishRate: 30
+                burstCapacity: 60
+            - name: LoggingFilter
+            - StripPrefix=1
+
+        - id: product-service-secure
+          uri: lb://product-service
+          predicates:
+            - Path=/api/products/**, /api/categories/**
+            - Method=POST,PUT,DELETE,PATCH
+          filters:
+            - name: AuthenticationFilter
+            - name: RateLimitingFilter
+              args:
+                replenishRate: 10
+                burstCapacity: 20
+            - name: LoggingFilter
+            - StripPrefix=1
+
+        - id: order-service
+          uri: lb://order-service
+          predicates:
+            - Path=/api/orders/**, /api/cart/**
+          filters:
+            - name: AuthenticationFilter
+            - name: RateLimitingFilter
+              args:
+                replenishRate: 10
+                burstCapacity: 20
+            - name: LoggingFilter
+            - StripPrefix=1
+
+        - id: payment-service-public
+          uri: lb://payment-service
+          predicates:
+            - Path=/api/webhooks/**
+          filters:
+            - name: RateLimitingFilter
+              args:
+                replenishRate: 50
+                burstCapacity: 100
+            - name: LoggingFilter
+            - StripPrefix=1
+
+        - id: payment-service-secure
+          uri: lb://payment-service
+          predicates:
+            - Path=/api/payments/**
+          filters:
+            - name: AuthenticationFilter
+            - name: RateLimitingFilter
+              args:
+                replenishRate: 20
+                burstCapacity: 40
+            - name: LoggingFilter
+            - StripPrefix=1
+
+        - id: seller-service
+          uri: lb://seller-service
+          predicates:
+            - Path=/api/sellers/**, /api/vendor/**
+          filters:
+            - name: AuthenticationFilter
+            - name: RateLimitingFilter
+              args:
+                replenishRate: 10
+                burstCapacity: 20
+            - name: LoggingFilter
+            - StripPrefix=1
+
+        - id: fallback-route
+          uri: http://localhost:${server.port}
+          predicates:
+            - Path=/fallback/**
+          filters:
+            - SetPath=/api/gateway/fallback
+
+  data:
+    redis:
+      host: ${RDS_REMOTE_HOST:localhost}
+      port: ${RDS_REMOTE_PORT:6379}
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+          max-wait: 5000ms
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
+    healthcheck:
+      enabled: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 10
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway,routes
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+    gateway:
+      enabled: true
+    routes:
+      enabled: true
+
+logging:
+  level:
+    com.ecommerce.gateway: DEBUG
+    org.springframework.cloud.gateway: TRACE
+    org.springframework.security: DEBUG
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      authService:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+      userService:
+        register-health-indicator: true
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
