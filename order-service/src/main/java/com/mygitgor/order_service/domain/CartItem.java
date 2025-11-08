@@ -22,14 +22,14 @@ public class CartItem extends BaseEntity{
     private UUID productId;
 
     private String size;
-    private int quantity = 1;
+    private Integer quantity = 1;
 
     private Integer mrpPrice;
     private Integer sellingPrice;
 
     private UUID userId;
 
-    public static CartItem create(UUID productId, String size, int quantity,
+    public static CartItem create(UUID productId, String size, Integer quantity,
                                   Integer mrpPrice, Integer sellingPrice, UUID userId) {
         CartItem item = new CartItem();
         item.setProductId(productId);

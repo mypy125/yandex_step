@@ -1,10 +1,14 @@
-package com.mygitgor.order_service.service;
+package com.mygitgor.order_service.service.impl;
 
 import com.mygitgor.order_service.domain.Cart;
+import com.mygitgor.order_service.domain.CartItem;
 import com.mygitgor.order_service.repository.CartRepository;
+import com.mygitgor.order_service.service.CartService;
 import com.sun.jdi.request.DuplicateRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -23,5 +27,10 @@ public class CartServiceImpl implements CartService {
         }
         Cart cart = Cart.create(userId);
         cartRepository.save(cart);
+    }
+
+    @Override
+    public CartItem addCartItem(UUID user, UUID productId, String size, int quantity) {
+        return null;
     }
 }

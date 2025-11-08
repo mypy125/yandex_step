@@ -19,20 +19,20 @@ import java.util.UUID;
 public class Product extends BaseEntity {
     private String title;
     private String description;
-    private int quantity;
+    private Integer quantity;
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-    private int mrpPrice;
-    private int sellingPrice;
-    private int discountPercent;
+    private Integer mrpPrice;
+    private Integer sellingPrice;
+    private Integer discountPercent;
 
     private String color;
 
     @ElementCollection(fetch = FetchType.EAGER)
     private List<String> images = new ArrayList<>();
 
-    private int numRatings;
+    private Integer numRatings;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
