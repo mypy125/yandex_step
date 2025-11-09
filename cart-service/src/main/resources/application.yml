@@ -1,14 +1,14 @@
 server:
-  port: 8085
+  port: 8084
 dotenv:
   enabled: true
   override: true
 spring:
   application:
-    name: order-service
+    name: cart-service
 
   datasource:
-    url: ${LOCAL_DB_URL}order_db
+    url: ${LOCAL_DB_URL}cart_db
     username: ${LOCAL_DB_USERNAME}
     password: ${LOCAL_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver

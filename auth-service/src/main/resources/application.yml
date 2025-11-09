@@ -70,9 +70,9 @@ seller:
   service:
     base-url: ${SELLER_SERVICE_BASE_URL}
     timeout: 10s
-order:
+cart:
   service:
-    base-url: ${ORDER_SERVICE_BASE_URL}
+    base-url: ${CART_SERVICE_BASE_URL}
     timeout: 10s
 
 management:

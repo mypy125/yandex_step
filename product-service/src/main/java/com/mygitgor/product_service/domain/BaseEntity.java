@@ -1,4 +1,4 @@
-package com.mygitgor.order_service.domain;
+package com.mygitgor.product_service.domain;
 
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;

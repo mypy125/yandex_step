@@ -1,0 +1,18 @@
+package com.mygitgor.order_service.dto.clientDto;
+
+import lombok.Data;
+
+import java.util.Set;
+import java.util.UUID;
+
+@Data
+public class CartDto {
+    private UUID id;
+    private String userId;
+    private Set<CartItemDto> cartItems;
+    private double totalSellingPrice;
+    private Integer totalItem;
+    private Integer totalMrpPrice;
+    private Integer discount;
+    private String couponCode;
+}
