@@ -34,6 +34,7 @@
 		<org-mapstruct.version>1.5.5.Final</org-mapstruct.version>
 		<junit-test.version>5.12.2</junit-test.version>
 		<mockhito-core.version>5.12.0</mockhito-core.version>
+		<jjwt-tocken.verdion>0.11.5</jjwt-tocken.verdion>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -93,6 +94,23 @@
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-api</artifactId>
+			<version>${jjwt-tocken.verdion}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-impl</artifactId>
+			<version>${jjwt-tocken.verdion}</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-jackson</artifactId>
+			<version>${jjwt-tocken.verdion}</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>

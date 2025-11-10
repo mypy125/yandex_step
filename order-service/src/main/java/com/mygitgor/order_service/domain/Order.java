@@ -20,7 +20,7 @@ import java.util.List;
 public class Order extends BaseEntity {
     private String orderId;
 
-    private UUID userId;
+    private String userId;
     private UUID sellerId;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -28,10 +28,9 @@ public class Order extends BaseEntity {
 
     private UUID addressId;
 
-    @Embedded
-    private PaymentDetails paymentDetails = new PaymentDetails();
+    private UUID paymentId;
 
-    private double totalMrpPrice;
+    private Integer totalMrpPrice;
     private Integer totalSellingPrice;
     private Integer discount;
     private Integer totalItem;
@@ -46,6 +45,10 @@ public class Order extends BaseEntity {
     private LocalDateTime orderDate;
 
     private LocalDateTime deliverDate;
+
+    private String shippingMethod;
+    private String trackingNumber;
+    private String customerNotes;
 
     @PrePersist
     public void prePersist() {
@@ -72,13 +75,13 @@ public class Order extends BaseEntity {
 
     public Integer calculateTotalPrice() {
         return orderItems.stream()
-                .mapToInt(OrderItem::getTotalPrice)
+                .mapToInt(OrderItem::getSellingPrice)
                 .sum();
     }
 
     public Integer calculateTotalMrpPrice() {
         return orderItems.stream()
-                .mapToInt(OrderItem::getTotalMrpPrice)
+                .mapToInt(OrderItem::getMrpPrice)
                 .sum();
     }
 
@@ -86,13 +89,27 @@ public class Order extends BaseEntity {
         return calculateTotalMrpPrice() - calculateTotalPrice();
     }
 
-    public static Order create(UUID userId, UUID addressId) {
+    public static Order create(String userId, UUID addressId, UUID sellerId) {
         Order order = new Order();
         order.setUserId(userId);
         order.setAddressId(addressId);
+        order.setSellerId(sellerId);
         order.setOrderStatus(OrderStatus.PENDING);
         order.setPaymentStatus(PaymentStatus.PENDING);
+        order.setTotalMrpPrice(0);
+        order.setTotalSellingPrice(0);
+        order.setDiscount(0);
+        order.setTotalItem(0);
         return order;
+    }
+
+    public void updateTotals() {
+        this.totalMrpPrice = calculateTotalMrpPrice();
+        this.totalSellingPrice = calculateTotalPrice();
+        this.discount = calculateDiscount();
+        this.totalItem = orderItems.stream()
+                .mapToInt(OrderItem::getQuantity)
+                .sum();
     }
 
 }

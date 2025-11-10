@@ -37,5 +37,9 @@ resilience4j:
         max-attempts: 3
         wait-duration: 500ms
 
+jwt:
+  secretKey: ${JWT_SECRET_KEY}
+  header: ${JWT_HEADER}
+
 product-service:
   base-url: {PRODUCT_SERVICE_URL}

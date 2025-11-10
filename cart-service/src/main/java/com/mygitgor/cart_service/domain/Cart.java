@@ -3,7 +3,9 @@ package com.mygitgor.cart_service.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -20,7 +22,7 @@ public class Cart extends BaseEntity{
     private String userId;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<CartItem> cartItems = new HashSet<>();
+    private List<CartItem> cartItems = new ArrayList<>();
 
     private double totalSellingPrice;
     private Integer totalItem;

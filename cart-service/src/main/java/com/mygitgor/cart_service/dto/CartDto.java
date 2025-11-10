@@ -2,6 +2,7 @@ package com.mygitgor.cart_service.dto;
 
 import lombok.Data;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -9,7 +10,7 @@ import java.util.UUID;
 public class CartDto {
     private UUID id;
     private String userId;
-    private Set<CartItemDto> cartItems;
+    private List<CartItemDto> cartItems;
     private double totalSellingPrice;
     private Integer totalItem;
     private Integer totalMrpPrice;
