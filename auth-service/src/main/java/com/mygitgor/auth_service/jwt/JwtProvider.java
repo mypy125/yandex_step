@@ -1,5 +1,6 @@
 package com.mygitgor.auth_service.jwt;
 
+import com.mygitgor.auth_service.client.UserClient;
 import com.mygitgor.auth_service.dto.USER_ROLE;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class JwtProvider {
     private final JwtProps jwtProps;
+    private final UserClient userClient;
     private SecretKey key;
 
     @PostConstruct
@@ -26,11 +28,11 @@ public class JwtProvider {
         this.key = Keys.hmacShaKeyFor(jwtProps.getSecretKey().getBytes(StandardCharsets.UTF_8));
     }
 
-    public String generateToken(String email, USER_ROLE role) {
-        return generateToken(email, List.of(role.name()));
+    public String generateToken(String email, USER_ROLE role, String userId) {
+        return generateToken(email, List.of(role.name()),userId);
     }
 
-    public String generateToken(String email, List<String> authorities) {
+    public String generateToken(String email, List<String> authorities,String userId) {
         String roles = String.join(",", authorities);
 
         return Jwts.builder()
@@ -38,8 +40,15 @@ public class JwtProvider {
                 .setExpiration(new Date(System.currentTimeMillis() + jwtProps.getExpirationTime()))
                 .claim("email", email)
                 .claim("authorities", roles)
+                .claim("userId", userId)
                 .signWith(key)
                 .compact();
+    }
+
+    public String generateToken(String email, USER_ROLE role) {
+        return userClient.getAuthInfo(email)
+                .map(userAuthInfo -> generateToken(email, List.of(role.name()), userAuthInfo.getId()))
+                .block();
     }
 
     public String generateToken(Authentication auth) {
@@ -55,15 +64,24 @@ public class JwtProvider {
                 .compact();
     }
 
+    public String getUserIdFromJwtToken(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return String.valueOf(claims.get("userId"));
+    }
+
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
                     .parseClaimsJws(token);
-            return true;
-        } catch (Exception e) {
             return false;
+        } catch (Exception e) {
+            return true;
         }
     }
 

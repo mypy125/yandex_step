@@ -15,7 +15,7 @@ public class OrderItemDto {
     private UUID id;
     private UUID productId;
     private String size;
-    private int quantity;
+    private Integer quantity;
     private Integer mrpPrice;
     private Integer sellingPrice;
     private UUID userId;

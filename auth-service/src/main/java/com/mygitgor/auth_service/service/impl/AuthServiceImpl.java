@@ -59,14 +59,16 @@ public class AuthServiceImpl implements AuthService {
                     if (Boolean.TRUE.equals(isSeller)) {
                         log.info("User identified as SELLER: {}", email);
                         return sellerClient.getAuthInfo(email)
-                                .map(sellerInfo -> createAuthResponse(sellerInfo.getEmail(), USER_ROLE.ROLE_SELLER));
+                                .map(sellerInfo -> createAuthResponse(
+                                        sellerInfo.getEmail(), USER_ROLE.ROLE_SELLER,sellerInfo.getId()));
                     } else {
                         return userClient.existsByEmail(email)
                                 .flatMap(isUser -> {
                                     if (Boolean.TRUE.equals(isUser)) {
                                         log.info("User identified as CUSTOMER: {}", email);
                                         return userClient.getAuthInfo(email)
-                                                .map(userInfo -> createAuthResponse(userInfo.getEmail(), USER_ROLE.ROLE_CUSTOMER));
+                                                .map(userInfo -> createAuthResponse(
+                                                        userInfo.getEmail(), USER_ROLE.ROLE_CUSTOMER,userInfo.getId()));
                                     } else {
                                         log.error("User not found: {}", email);
                                         return Mono.error(new RuntimeException("User not found"));
@@ -91,28 +93,29 @@ public class AuthServiceImpl implements AuthService {
     private Mono<AuthResponse> generateAuthResponse(String email, USER_ROLE role) {
         if (role == USER_ROLE.ROLE_CUSTOMER) {
             return userClient.getAuthInfo(email)
-                    .map(userInfo -> createAuthResponse(userInfo.getEmail(), role));
+                    .map(userInfo -> createAuthResponse(userInfo.getEmail(), role, userInfo.getId()));
         } else if (role == USER_ROLE.ROLE_SELLER) {
             return sellerClient.getAuthInfo(email)
-                    .map(sellerInfo -> createAuthResponse(sellerInfo.getEmail(), role));
+                    .map(sellerInfo -> createAuthResponse(sellerInfo.getEmail(), role, sellerInfo.getId()));
         }
         return Mono.error(new RuntimeException("Unsupported role: " + role));
     }
 
-    private AuthResponse createAuthResponse(String email, USER_ROLE role) {
+    private AuthResponse createAuthResponse(String email, USER_ROLE role,String userId) {
         if (email == null) {
             log.error("Email is null when creating auth response for role: {}", role);
             throw new IllegalArgumentException("Email cannot be null");
         }
-        String token = jwtProvider.generateToken(email, role);
+        String token = jwtProvider.generateToken(email, role, userId);
 
-        cacheActiveToken(token, email, role);
+        cacheActiveToken(token, email, role, userId);
 
         return AuthResponse.builder()
                 .jwt(token)
                 .message("Login success")
                 .role(role)
                 .email(email)
+                .userId(userId)
                 .timestamp(LocalDateTime.now())
                 .build();
     }
@@ -188,7 +191,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public Mono<Boolean> validateToken(String token) {
         return Mono.fromCallable(() -> {
-            if (!jwtProvider.validateToken(token)) {
+            if (jwtProvider.validateToken(token)) {
                 return false;
             }
 
@@ -224,6 +227,7 @@ public class AuthServiceImpl implements AuthService {
 
             String email = jwtProvider.getEmailFromJwtToken(token);
             USER_ROLE role = jwtProvider.getRoleFromJwtToken(token);
+            String userId = jwtProvider.getUserIdFromJwtToken(token);
 
             UserInfo userInfo = new UserInfo();
             userInfo.setEmail(email);
@@ -233,7 +237,7 @@ public class AuthServiceImpl implements AuthService {
         });
     }
 
-    private void cacheActiveToken(String token, String email, USER_ROLE role) {
+    private void cacheActiveToken(String token, String email, USER_ROLE role, String userId) {
         try {
             String activeTokenKey = "active_token:" + email;
 
@@ -244,6 +248,7 @@ public class AuthServiceImpl implements AuthService {
                 Map<String, Object> tokenInfo = new HashMap<>();
                 tokenInfo.put("token", token);
                 tokenInfo.put("role", role.name());
+                tokenInfo.put("userId", userId);
                 tokenInfo.put("createdAt", LocalDateTime.now());
 
                 tokenCacheService.getRedisTemplate().opsForValue()

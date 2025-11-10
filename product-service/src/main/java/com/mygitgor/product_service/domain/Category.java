@@ -19,8 +19,6 @@ public class Category extends BaseEntity {
     private String categoryId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
     private Category parentCategory;
 
     @NotNull

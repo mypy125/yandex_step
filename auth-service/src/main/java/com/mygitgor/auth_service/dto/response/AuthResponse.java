@@ -17,6 +17,7 @@ public class AuthResponse {
     private String message;
     private USER_ROLE role;
     private String email;
+    private String userId;
     private LocalDateTime timestamp;
 
     public AuthResponse(String jwt, String message, USER_ROLE role) {

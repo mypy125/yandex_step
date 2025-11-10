@@ -28,6 +28,33 @@ public class ProductDto {
     private UUID sellerId;
     private UUID categoryId;
     private String categoryName;
+    private String brand;
+    private String sku;
+    private String weight;
+    private String dimensions;
+    private Boolean active;
+    private Boolean approved;
+    private Boolean inStock;
+    private Boolean featured;
+    private Integer minOrderQuantity;
+    private Integer maxOrderQuantity;
+    private String material;
+    private String warranty;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    public boolean isAvailable() {
+        return Boolean.TRUE.equals(active) &&
+                Boolean.TRUE.equals(approved) &&
+                Boolean.TRUE.equals(inStock);
+    }
+
+    public boolean canOrderQuantity(Integer requestedQuantity) {
+        if (requestedQuantity == null || requestedQuantity <= 0) {
+            return false;
+        }
+        return requestedQuantity >= minOrderQuantity &&
+                requestedQuantity <= maxOrderQuantity &&
+                (quantity == null || requestedQuantity <= quantity);
+    }
 }

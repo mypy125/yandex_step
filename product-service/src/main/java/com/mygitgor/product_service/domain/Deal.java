@@ -15,7 +15,5 @@ public class Deal extends BaseEntity{
     private Integer discount;
 
     @OneToOne
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
     private HomeCategory category;
 }
