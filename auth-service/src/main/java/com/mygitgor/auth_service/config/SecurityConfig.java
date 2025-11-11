@@ -73,7 +73,7 @@ public class SecurityConfig {
                     return Mono.error(new BadCredentialsException("Token is blacklisted"));
                 }
 
-                if (jwtProvider.validateToken(token)) {
+                if (!jwtProvider.validateToken(token)) {
                     return Mono.error(new BadCredentialsException("Invalid token"));
                 }
 

@@ -16,4 +16,5 @@ public class CartDto {
     private Integer totalMrpPrice;
     private Integer discount;
     private String couponCode;
+
 }

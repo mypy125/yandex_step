@@ -64,15 +64,15 @@ jwt:
 
 user:
   service:
-    base-url: ${USER_SERVICE_BASE_URL}
+    url: ${USER_SERVICE_BASE_URL}
     timeout: 10s
 seller:
   service:
-    base-url: ${SELLER_SERVICE_BASE_URL}
+    url: ${SELLER_SERVICE_BASE_URL}
     timeout: 10s
 cart:
   service:
-    base-url: ${CART_SERVICE_BASE_URL}
+    url: ${CART_SERVICE_BASE_URL}
     timeout: 10s
 
 management:

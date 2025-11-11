@@ -36,6 +36,3 @@ resilience4j:
       productService:
         max-attempts: 3
         wait-duration: 500ms
-
-product-service:
-  base-url: {PRODUCT_SERVICE_URL}

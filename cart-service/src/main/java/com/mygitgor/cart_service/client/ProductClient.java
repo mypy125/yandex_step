@@ -7,6 +7,7 @@ import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -25,7 +26,7 @@ public class ProductClient {
     @Bulkhead(name = "productService")
     public ProductDto getProductById(UUID productId) {
         try {
-            String url = "http://product-service/api/products/" + productId;
+            String url = "http://localhost:8086/api/products/" + productId;
             ResponseEntity<ProductDto> response = restTemplate.getForEntity(url, ProductDto.class);
             log.debug("Retrieved product: {}", productId);
             return response.getBody();
@@ -44,7 +45,7 @@ public class ProductClient {
     @Retry(name = "productService", fallbackMethod = "existsByIdFallback")
     public boolean existsById(UUID productId) {
         try {
-            String url = "http://product-service/api/products/" + productId + "/exists";
+            String url = "http://localhost:8086/api/products/" + productId + "/exists";
             ResponseEntity<Boolean> response = restTemplate.getForEntity(url, Boolean.class);
             return Boolean.TRUE.equals(response.getBody());
         } catch (Exception e) {

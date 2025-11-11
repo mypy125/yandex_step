@@ -3,7 +3,6 @@ package com.mygitgor.cart_service.dto;
 import lombok.Data;
 
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @Data
