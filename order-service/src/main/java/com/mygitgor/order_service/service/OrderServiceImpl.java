@@ -7,13 +7,16 @@ import com.mygitgor.order_service.domain.OrderItem;
 import com.mygitgor.order_service.domain.OrderStatus;
 import com.mygitgor.order_service.dto.*;
 import com.mygitgor.order_service.dto.clientDto.*;
+import com.mygitgor.order_service.mapping.OrderItemMapper;
 import com.mygitgor.order_service.mapping.OrderMapper;
 import com.mygitgor.order_service.repository.OrderItemRepository;
 import com.mygitgor.order_service.repository.OrderRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Slf4j
@@ -25,6 +28,7 @@ public class OrderServiceImpl implements OrderService {
     private final CartClient cartClient;
     private final ProductClient productClient;
     private final OrderMapper orderMapper;
+    private final OrderItemMapper orderItemMapper;
 
     @Override
     public Set<OrderDto> createOrder(String userId, CreateOrderRequest request) {
@@ -37,9 +41,11 @@ public class OrderServiceImpl implements OrderService {
         Set<Order> orders = new HashSet<>();
         for (Map.Entry<UUID, List<CartItemDto>> entry : itemsBySeller.entrySet()) {
             Order order = createOrderForSeller(userId, entry.getKey(), request, entry.getValue());
-            orders.add(order);
-        }
 
+            Order savedOrder = orderRepository.save(order);
+            orders.add(savedOrder);
+        }
+        cartClient.clearCart(cart.getId().toString());
         return orderMapper.toOrderDtoSet(orders);
     }
 
@@ -93,33 +99,78 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderDto findOrderById(UUID orderId) throws Exception {
-        return null;
+    public OrderDto findOrderById(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        String.format("order with id '%s' not found",orderId)));
+
+        return orderMapper.toOrderDto(order);
     }
 
     @Override
     public List<OrderDto> usersOrderHistory(UUID userId) {
-        return List.of();
+        List<Order> orders = orderRepository.findByUserId(userId);
+        if (orders.isEmpty()) {
+            throw new EntityNotFoundException(String.format(
+                    "order wit user id '%s' not found",userId
+            ));
+        }
+
+        return orderMapper.toOrderDtoList(orders);
     }
 
     @Override
     public List<OrderDto> sellersOrder(UUID sellerId) {
-        return List.of();
+        List<Order> orders = orderRepository.findBySellerId(sellerId);
+        if (orders.isEmpty()) {
+            throw new EntityNotFoundException(String.format(
+                    "order wit seller id '%s' not found",sellerId
+            ));
+        }
+
+        return orderMapper.toOrderDtoList(orders);
     }
 
     @Override
-    public OrderDto updateOrderStatus(UUID orderId, OrderStatus status) throws Exception {
-        return null;
+    public OrderDto updateOrderStatus(UUID orderId, OrderStatus status) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        String.format("order with id '%s' not found",orderId)));
+
+        order.setOrderStatus(status);
+        if (status == OrderStatus.DELIVERED) {
+            order.setDeliverDate(LocalDateTime.now());
+        }
+        orderRepository.save(order);
+        return orderMapper.toOrderDto(order);
     }
 
     @Override
-    public OrderDto cancelOrder(UUID orderId, UUID userId) throws Exception {
-        return null;
+    public OrderDto cancelOrder(UUID orderId, UUID userId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        String.format("order with id '%s' not found",orderId)));
+
+        if (!UUID.fromString(order.getUserId()).equals(userId)) {
+            throw new IllegalArgumentException("User cannot cancel another user's order");
+        }
+
+        if (order.getOrderStatus() == OrderStatus.CANCELED) {
+            throw new IllegalStateException("Order already cancelled");
+        }
+
+        order.setOrderStatus(OrderStatus.CANCELED);
+        orderRepository.save(order);
+
+        return orderMapper.toOrderDto(order);
     }
 
     @Override
-    public OrderItemDto getOrderItemById(UUID orderItemId) throws Exception {
-        return null;
+    public OrderItemDto getOrderItemById(UUID orderItemId) {
+        OrderItem orderItem = orderItemRepository.findById(orderItemId)
+                .orElseThrow(() -> new EntityNotFoundException("Order item not found with id: " + orderItemId));
+
+        return orderItemMapper.toOrderItemDto(orderItem);
     }
 
 

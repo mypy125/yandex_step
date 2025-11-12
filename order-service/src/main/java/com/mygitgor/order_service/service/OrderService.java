@@ -1,12 +1,9 @@
 package com.mygitgor.order_service.service;
 
-import com.mygitgor.order_service.domain.Order;
 import com.mygitgor.order_service.domain.OrderStatus;
 import com.mygitgor.order_service.dto.CreateOrderRequest;
 import com.mygitgor.order_service.dto.OrderDto;
 import com.mygitgor.order_service.dto.OrderItemDto;
-import com.mygitgor.order_service.dto.PaymentLinkResponse;
-import com.mygitgor.order_service.dto.clientDto.CartDto;
 
 import java.util.List;
 import java.util.Set;

@@ -1,5 +1,6 @@
 package com.mygitgor.cart_service.controller;
 
+import com.mygitgor.cart_service.dto.CartDto;
 import com.mygitgor.cart_service.service.CartService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,18 @@ public class CartController {
         } catch (RuntimeException e) {
             log.error("Error creating cart for user {}: {}", userId, e.getMessage());
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+    }
+
+    @PostMapping("/user/{userId}")
+    public ResponseEntity<CartDto> getUserCartHandler(@PathVariable String userId
+    ){
+        try {
+            CartDto userCart = cartService.getUserCart(userId);
+            return ResponseEntity.ok(userCart);
+        } catch (RuntimeException e) {
+            log.error("Error get cart wit user {}: {}", userId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 }

@@ -19,6 +19,10 @@ public class ProductDto {
     private String size;
     private String categoryName;
     private String brand;
+    private String sku;
+    private Integer quantity;
+    private UUID sellerId;
+    private Boolean active;
     private String weight;
     private String dimensions;
     private Boolean inStock;
