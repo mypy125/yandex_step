@@ -1,5 +1,6 @@
 package com.mygitgor.seller_service.service.impl;
 
+import com.mygitgor.seller_service.domain.AccountStatus;
 import com.mygitgor.seller_service.domain.Seller;
 import com.mygitgor.seller_service.dto.SellerAuthInfo;
 import com.mygitgor.seller_service.dto.SellerDto;
@@ -12,12 +13,20 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class sellerServiceImpl implements SellerService {
     private final SellerRepository sellerRepository;
     private final SellerMapper sellerMapper;
     private final PasswordEncoder passwordEncoder;
+
+    @Override
+    public SellerDto getSellerProfile(String jwt) throws Exception {
+        return null;
+    }
 
     @Override
     public boolean existsByEmail(String email) {
@@ -61,11 +70,31 @@ public class sellerServiceImpl implements SellerService {
     }
 
     @Override
+    public SellerDto getSellerById(UUID id) {
+        return null;
+    }
+
+    @Override
+    public List<SellerDto> getAllSellers(AccountStatus status) {
+        return List.of();
+    }
+
+    @Override
     public SellerDto updateSeller(String email, SellerDto sellerDto) {
         Seller seller = getSellerByEmail(email);
         sellerMapper.updateSellerFromDto(sellerDto, seller);
         Seller updatedSeller = sellerRepository.save(seller);
 
         return sellerMapper.toSellerDto(updatedSeller);
+    }
+
+    @Override
+    public SellerDto updateSellerAccountStatus(UUID sellerId, AccountStatus status) {
+        return null;
+    }
+
+    @Override
+    public void deleteSeller(UUID id) {
+
     }
 }
