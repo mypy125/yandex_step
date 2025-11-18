@@ -14,6 +14,7 @@ public interface OrderService {
     OrderDto findOrderById(UUID orderId) throws Exception;
     List<OrderDto>usersOrderHistory(UUID userId);
     List<OrderDto> sellersOrder(UUID sellerId);
+    List<OrderDto> getSellerOrders(UUID sellerId, OrderStatus status);
     OrderDto updateOrderStatus(UUID orderId, OrderStatus status) throws Exception;
     OrderDto cancelOrder(UUID orderId, UUID userId) throws Exception;
     OrderItemDto getOrderItemById(UUID orderItemId) throws Exception;

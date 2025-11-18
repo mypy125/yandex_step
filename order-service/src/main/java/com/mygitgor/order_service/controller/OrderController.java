@@ -2,10 +2,8 @@ package com.mygitgor.order_service.controller;
 
 import com.mygitgor.order_service.client.PaymentClient;
 import com.mygitgor.order_service.config.JwtUtils;
-import com.mygitgor.order_service.dto.CreateOrderRequest;
-import com.mygitgor.order_service.dto.OrderDto;
-import com.mygitgor.order_service.dto.PaymentLinkResponse;
-import com.mygitgor.order_service.dto.PaymentMethod;
+import com.mygitgor.order_service.domain.OrderStatus;
+import com.mygitgor.order_service.dto.*;
 import com.mygitgor.order_service.dto.clientDto.AddressDto;
 import com.mygitgor.order_service.dto.clientDto.PaymentOrderDto;
 import com.mygitgor.order_service.service.OrderService;
@@ -15,7 +13,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -65,5 +65,43 @@ public class OrderController {
         };
     }
 
+
+    @GetMapping("/seller/{sellerId}")
+    public ResponseEntity<List<OrderDto>> getSellerOrders(@PathVariable String sellerId,
+                                                          @RequestParam(required = false) OrderStatus status
+    ) {
+        try {
+            log.debug("Retrieving orders for seller: {}", sellerId);
+            List<OrderDto> orders = orderService.getSellerOrders(UUID.fromString(sellerId), status);
+            return ResponseEntity.ok(orders);
+        } catch (Exception e) {
+            log.error("Error retrieving orders for seller {}: {}", sellerId, e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PatchMapping("/{orderId}/status")
+    public ResponseEntity<OrderDto> updateOrderStatus(@PathVariable String orderId,
+                                                      @RequestBody UpdateOrderStatusRequest request) {
+        try {
+            log.info("Updating order {} status to {}", orderId, request.getStatus());
+            OrderDto order = orderService.updateOrderStatus(UUID.fromString(orderId), request.getStatus());
+            return ResponseEntity.ok(order);
+        } catch (Exception e) {
+            log.error("Error updating order {} status: {}", orderId, e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/{orderId}")
+    public ResponseEntity<OrderDto> getOrderById(@PathVariable String orderId) {
+        try {
+            OrderDto order = orderService.findOrderById(UUID.fromString(orderId));
+            return ResponseEntity.ok(order);
+        } catch (Exception e) {
+            log.error("Error retrieving order {}: {}", orderId, e.getMessage());
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
 
 }

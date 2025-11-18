@@ -1,9 +1,9 @@
 package com.mygitgor.seller_service.controller;
 
-import com.mygitgor.seller_service.client.OrderClient;
 import com.mygitgor.seller_service.config.JwtUtils;
 import com.mygitgor.seller_service.dto.client.order.OrderDto;
 import com.mygitgor.seller_service.dto.client.order.OrderStatus;
+import com.mygitgor.seller_service.service.SellerOrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +15,7 @@ import java.util.List;
 @RequestMapping("/api/sellers/orders")
 @RequiredArgsConstructor
 public class SellerOrderController {
-    private final OrderClient orderClient;
+    private final SellerOrderService sellerOrderService;
     private final JwtUtils jwtUtils;
 
     @GetMapping
@@ -23,7 +23,7 @@ public class SellerOrderController {
                                                                 String jwt
     ) {
         String sellerId = jwtUtils.extractUserId(jwt);
-        List<OrderDto> orders = orderClient.getSellerOrders(sellerId);
+        List<OrderDto> orders = sellerOrderService.getSellerOrders(sellerId);
         return new ResponseEntity<>(orders, HttpStatus.ACCEPTED);
     }
 
@@ -34,7 +34,8 @@ public class SellerOrderController {
                                                    String jwt
     ) {
         String validId = jwtUtils.extractUserId(jwt);
-        Boolean order = orderClient.updateOrderStatus(orderId,orderStatus);
+        Boolean order = sellerOrderService.shipOrder(orderId,orderStatus);
         return new ResponseEntity<>(order,HttpStatus.ACCEPTED);
     }
+
 }

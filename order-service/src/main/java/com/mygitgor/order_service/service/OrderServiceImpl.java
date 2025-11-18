@@ -132,6 +132,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<OrderDto> getSellerOrders(UUID sellerId, OrderStatus status) {
+        List<Order> orders;
+        if (status != null) {
+            orders = orderRepository.findBySellerIdAndOrderStatus(sellerId, status);
+        } else {
+            orders = orderRepository.findBySellerId(sellerId);
+        }
+        return orderMapper.toOrderDtoList(orders);
+    }
+
+    @Override
     public OrderDto updateOrderStatus(UUID orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new EntityNotFoundException(
