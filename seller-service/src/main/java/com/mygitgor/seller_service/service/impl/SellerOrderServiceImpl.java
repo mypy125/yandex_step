@@ -25,7 +25,7 @@ public class SellerOrderServiceImpl implements SellerOrderService {
     }
 
     @Override
-    public boolean shipOrder(String orderId, OrderStatus orderStatus) {
+    public boolean updateOrderStatus(String orderId, OrderStatus orderStatus) {
         return orderClient.updateOrderStatus(orderId, OrderStatus.SHIPPED);
     }
 }

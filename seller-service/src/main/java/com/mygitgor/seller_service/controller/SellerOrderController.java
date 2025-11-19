@@ -4,6 +4,7 @@ import com.mygitgor.seller_service.config.JwtUtils;
 import com.mygitgor.seller_service.dto.client.order.OrderDto;
 import com.mygitgor.seller_service.dto.client.order.OrderStatus;
 import com.mygitgor.seller_service.service.SellerOrderService;
+import com.mygitgor.seller_service.service.SellerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SellerOrderController {
     private final SellerOrderService sellerOrderService;
+    private final SellerService sellerService;
     private final JwtUtils jwtUtils;
 
     @GetMapping
@@ -30,12 +32,15 @@ public class SellerOrderController {
     @PatchMapping("/{orderId}/status/{orderStatus}")
     public ResponseEntity<Boolean> updateOrderHandler(@PathVariable String orderId,
                                                        @PathVariable OrderStatus orderStatus,
-                                                       @RequestHeader("Authorization")
-                                                   String jwt
+                                                       @RequestHeader("Authorization") String jwt
     ) {
-        String validId = jwtUtils.extractUserId(jwt);
-        Boolean order = sellerOrderService.shipOrder(orderId,orderStatus);
-        return new ResponseEntity<>(order,HttpStatus.ACCEPTED);
+        try{
+            sellerService.getSellerProfile(jwt);
+            Boolean order = sellerOrderService.updateOrderStatus(orderId,orderStatus);
+            return new ResponseEntity<>(order,HttpStatus.ACCEPTED);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

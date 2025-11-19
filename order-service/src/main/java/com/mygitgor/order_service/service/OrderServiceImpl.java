@@ -7,6 +7,7 @@ import com.mygitgor.order_service.domain.OrderItem;
 import com.mygitgor.order_service.domain.OrderStatus;
 import com.mygitgor.order_service.dto.*;
 import com.mygitgor.order_service.dto.clientDto.*;
+import com.mygitgor.order_service.dto.event.OrderCreatedEvent;
 import com.mygitgor.order_service.mapping.OrderItemMapper;
 import com.mygitgor.order_service.mapping.OrderMapper;
 import com.mygitgor.order_service.repository.OrderItemRepository;
@@ -25,6 +26,7 @@ import java.util.*;
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final OrderEventService orderEventService;
     private final CartClient cartClient;
     private final ProductClient productClient;
     private final OrderMapper orderMapper;
@@ -44,9 +46,30 @@ public class OrderServiceImpl implements OrderService {
 
             Order savedOrder = orderRepository.save(order);
             orders.add(savedOrder);
+            sendOrderCreatedEvent(savedOrder);
         }
         cartClient.clearCart(cart.getId().toString());
         return orderMapper.toOrderDtoSet(orders);
+    }
+
+    private void sendOrderCreatedEvent(Order order) {
+        OrderCreatedEvent event = OrderCreatedEvent.builder()
+                .orderId(order.getId())
+                .sellerId(order.getSellerId())
+                .userId(order.getUserId())
+                .totalMrpPrice(order.getTotalMrpPrice())
+                .totalSellingPrice(order.getTotalSellingPrice())
+                .totalItem(order.getTotalItem())
+                .discount(order.getDiscount())
+                .createdAt(order.getOrderDate())
+                .build();
+
+        try {
+            orderEventService.sendOrderCreatedEvent(event);
+        } catch (Exception e) {
+            log.error("Failed to send order created event for order {}: {}",
+                    order.getId(), e.getMessage());
+        }
     }
 
     private Order createOrderForSeller(String userId, UUID sellerId, CreateOrderRequest request,

@@ -4,8 +4,8 @@ import com.mygitgor.order_service.client.PaymentClient;
 import com.mygitgor.order_service.config.JwtUtils;
 import com.mygitgor.order_service.domain.OrderStatus;
 import com.mygitgor.order_service.dto.*;
-import com.mygitgor.order_service.dto.clientDto.AddressDto;
 import com.mygitgor.order_service.dto.clientDto.PaymentOrderDto;
+import com.mygitgor.order_service.service.OrderEventService;
 import com.mygitgor.order_service.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +24,7 @@ import java.util.UUID;
 public class OrderController {
     private final OrderService orderService;
     private final PaymentClient paymentClient;
+    private final OrderEventService orderEventService;
     private final JwtUtils jwtUtils;
 
     @PostMapping("/create")
@@ -103,5 +104,22 @@ public class OrderController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    @PutMapping("/{orderId}/cancel")
+    public ResponseEntity<OrderDto> cancelOrder(@PathVariable String orderId,
+                                                @RequestHeader("Authorization") String jwt
+    ) {
+        try {
+            String userId = jwtUtils.extractUserId(jwt);
+            OrderDto canceledOrder = orderService.cancelOrder(UUID.fromString(orderId),UUID.fromString(userId));
+
+            orderEventService.sendOrderCanceledEvent(canceledOrder);
+            return ResponseEntity.ok(canceledOrder);
+        } catch (Exception e) {
+            log.error("Error canceling order {}: {}", orderId, e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
 }

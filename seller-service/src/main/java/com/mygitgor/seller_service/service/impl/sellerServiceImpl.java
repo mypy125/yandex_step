@@ -1,5 +1,6 @@
 package com.mygitgor.seller_service.service.impl;
 
+import com.mygitgor.seller_service.config.JwtUtils;
 import com.mygitgor.seller_service.domain.AccountStatus;
 import com.mygitgor.seller_service.domain.Seller;
 import com.mygitgor.seller_service.dto.SellerAuthInfo;
@@ -22,10 +23,11 @@ public class sellerServiceImpl implements SellerService {
     private final SellerRepository sellerRepository;
     private final SellerMapper sellerMapper;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtils jwtUtils;
 
     @Override
     public SellerDto getSellerProfile(String jwt) throws Exception {
-        return null;
+        return getSellerById(UUID.fromString(jwtUtils.extractUserId(jwt)));
     }
 
     @Override
@@ -71,7 +73,11 @@ public class sellerServiceImpl implements SellerService {
 
     @Override
     public SellerDto getSellerById(UUID id) {
-        return null;
+        Seller seller = sellerRepository.findById(id)
+                .orElseThrow(()-> new EntityNotFoundException(
+                        String.format("seller not found with id '%s'",id)
+                ));
+       return sellerMapper.toSellerDto(seller);
     }
 
     @Override

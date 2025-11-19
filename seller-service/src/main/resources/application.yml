@@ -17,10 +17,29 @@ spring:
       show-sql: true
 
     rabbitmq:
-      host: localhost
-      port: 5672
+      host: ${RABBIT_HOST}
+      port: ${RABBIT_PORT}
       username: ${RABBIT_USERNAME}
       password: ${RABBIT_PASSWORD}
+      virtual-host: ${RABBIT_USERNAME}
+      connection-timeout: 5s
+      ssl:
+        enabled: true
+      template:
+        retry:
+          enabled: true
+          initial-interval: 1000ms
+          multiplier: 2
+          max-attempts: 3
+          max-interval: 10000ms
+      listener:
+        simple:
+          retry:
+            enabled: true
+            initial-interval: 1000ms
+            multiplier: 2
+            max-attempts: 3
+            max-interval: 10000ms
 
 management:
   endpoints:

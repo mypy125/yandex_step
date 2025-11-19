@@ -8,5 +8,6 @@ import java.util.List;
 public interface SellerOrderService {
     List<OrderDto> getSellerOrders(String sellerId);
     boolean confirmOrder(String orderId);
-    boolean shipOrder(String orderId, OrderStatus orderStatus);
+    boolean updateOrderStatus(String orderId, OrderStatus orderStatus);
+    
 }
